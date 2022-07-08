@@ -1177,12 +1177,1090 @@ extra_data (pandas.DataFrame): A dataframe holding the data.</p>
 </section>
 <section id="module-kirchhoff.init_random">
 <span id="kirchhoff-init-random"></span><h2>kirchhoff.init_random<a class="headerlink" href="#module-kirchhoff.init_random" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxRandom">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_random.</span></span><span class="sig-name descname"><span class="pre">NetworkxRandom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidelength</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxRandom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxRandom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A base class for spatial, random networks.</p>
+<blockquote>
+<div><p>num_periods(int):</p>
+<blockquote>
+<div><p>Number of points for internal Voronoi construction.</p>
+</div></blockquote>
+<p>sidelength (float):</p>
+<blockquote>
+<div><p>Box length for spatial initialization.</p>
+</div></blockquote>
+<p>G (dictionary):</p>
+<blockquote>
+<div><p>An internal simple graph.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxRandom.is_in_box">
+<span class="sig-name descname"><span class="pre">is_in_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxRandom.is_in_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxRandom.is_in_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test whether new random point is inside the constraining boundaries.</p>
+<dl>
+<dt>Args:</dt><dd><p>v (list):</p>
+<blockquote>
+<div><p>The point vector to be tested.</p>
+</div></blockquote>
+<p>sl (float):</p>
+<blockquote>
+<div><p>The sidelength, acting as scale for the transition vector.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>bool: The boolean value, True if inside the original volume.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxRandom.mirror_boxpoints">
+<span class="sig-name descname"><span class="pre">mirror_boxpoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxRandom.mirror_boxpoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxRandom.mirror_boxpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Periodically mirror points in 2D for voronoi construction.</p>
+<dl>
+<dt>Args:</dt><dd><p>points (list):</p>
+<blockquote>
+<div><p>The original list of points (x,y)</p>
+</div></blockquote>
+<p>sl (float):</p>
+<blockquote>
+<div><p>The sidelength, acting as scale for the transition vector.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>ndarray: A matrix of all points and their mirrors</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxRandom.mirror_cubepoints">
+<span class="sig-name descname"><span class="pre">mirror_cubepoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sl</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxRandom.mirror_cubepoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxRandom.mirror_cubepoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Periodically mirror points in 3D for voronoi construction.</p>
+<dl>
+<dt>Args:</dt><dd><p>points (list):</p>
+<blockquote>
+<div><p>The original list of points (x,y,z)</p>
+</div></blockquote>
+<p>sl (float):</p>
+<blockquote>
+<div><p>The sidelength, acting as scale for the transition vector.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>ndarray: A matrix of all points and their mirrors</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxVoronoiPlanar">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_random.</span></span><span class="sig-name descname"><span class="pre">NetworkxVoronoiPlanar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidelength</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxVoronoiPlanar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxVoronoiPlanar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_random.NetworkxRandom" title="kirchhoff.init_random.NetworkxRandom"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_random.NetworkxRandom</span></code></a></p>
+<p>A class algorithms to generate spatial, 2D random networks, generated via
+voronoi tesselation of a periodic plane.</p>
+<blockquote>
+<div><p>num_periods(int):</p>
+<blockquote>
+<div><p>Number of points for internal Voronoi construction.</p>
+</div></blockquote>
+<p>sidelength (float):</p>
+<blockquote>
+<div><p>Box length for spatial initialization.</p>
+</div></blockquote>
+<p>G (dict):</p>
+<blockquote>
+<div><p>An internal simple graph.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxVoronoiPlanar.construct_voronoi_periodic">
+<span class="sig-name descname"><span class="pre">construct_voronoi_periodic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidelength</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxVoronoiPlanar.construct_voronoi_periodic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxVoronoiPlanar.construct_voronoi_periodic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate random points in 2D, mirror them periodically and perform a
+Voronoi tesselation for a 2D random point set.</p>
+<dl>
+<dt>Args:</dt><dd><p>number (int):</p>
+<blockquote>
+<div><p>The number of points to be generated.</p>
+</div></blockquote>
+<p>sidelength (float):</p>
+<blockquote>
+<div><p>The sidelength of the box which hold points</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>Voronoi: A scipy.spatial.Voronoi output object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxVoronoiPlanar.random_voronoi_periodic">
+<span class="sig-name descname"><span class="pre">random_voronoi_periodic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidelength</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxVoronoiPlanar.random_voronoi_periodic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxVoronoiPlanar.random_voronoi_periodic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a spatially embedded in 2D, random networkx internally for
+given size parameters.</p>
+<dl>
+<dt>Args:</dt><dd><p>number (int):</p>
+<blockquote>
+<div><p>The number of points to be generated.</p>
+</div></blockquote>
+<p>sidelength (float):</p>
+<blockquote>
+<div><p>The sidelength of the box which hold points</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxVoronoiVolume">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_random.</span></span><span class="sig-name descname"><span class="pre">NetworkxVoronoiVolume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidelength</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxVoronoiVolume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxVoronoiVolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_random.NetworkxRandom" title="kirchhoff.init_random.NetworkxRandom"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_random.NetworkxRandom</span></code></a></p>
+<dl class="simple">
+<dt>A class algorithms to generate spatial, 3D random networks, generated via</dt><dd><p>voronoi tesselation of a periodic volume.</p>
+</dd>
+</dl>
+<blockquote>
+<div><p>num_periods(int):</p>
+<blockquote>
+<div><p>Number of points for internal Voronoi construction.</p>
+</div></blockquote>
+<p>sidelength (float):</p>
+<blockquote>
+<div><p>Box length for spatial initialization.</p>
+</div></blockquote>
+<p>G (dict):</p>
+<blockquote>
+<div><p>An internal simple graph.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxVoronoiVolume.construct_voronoi_periodic">
+<span class="sig-name descname"><span class="pre">construct_voronoi_periodic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidelength</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxVoronoiVolume.construct_voronoi_periodic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxVoronoiVolume.construct_voronoi_periodic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate random points in 3D, mirror them periodically and perform a
+Voronoi tesselation for a 3D random point set.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>number (int): The number of points to be generated.
+sidelength (float): The sidelength of the box which hold points</p>
+</dd>
+<dt>Returns:</dt><dd><p>Voronoi: A scipy.spatial.Voronoi output object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_random.NetworkxVoronoiVolume.random_voronoi_periodic">
+<span class="sig-name descname"><span class="pre">random_voronoi_periodic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidelength</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#NetworkxVoronoiVolume.random_voronoi_periodic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.NetworkxVoronoiVolume.random_voronoi_periodic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Build a spatially embedded in 3D, random networkx internally for given</dt><dd><p>size parameters.</p>
+</dd>
+<dt>Args:</dt><dd><p>number (int): The number of points to be generated.
+sidelength (float): The sidelength of the box which hold points</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kirchhoff.init_random.init_graph_from_random">
+<span class="sig-prename descclassname"><span class="pre">kirchhoff.init_random.</span></span><span class="sig-name descname"><span class="pre">init_graph_from_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">random_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidelength</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_random.html#init_graph_from_random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_random.init_graph_from_random" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a random spatial graph customized by type and size.</p>
+<dl>
+<dt>Args:</dt><dd><p>random_type (string):</p>
+<blockquote>
+<div><p>The type of random lattice to be constructed(voronoi_planar,
+voronoi_volume).</p>
+</div></blockquote>
+<p>periods (int):</p>
+<blockquote>
+<div><p>Number of random points.</p>
+</div></blockquote>
+<p>sidelength (float):</p>
+<blockquote>
+<div><p>The box size into which random points in space are generated.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph: A random spatial graph.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-kirchhoff.init_crystal">
 <span id="kirchhoff-init-crystal"></span><h2>kirchhoff.init_crystal<a class="headerlink" href="#module-kirchhoff.init_crystal" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxBcc">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxBcc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxBcc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxBcc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, simple bcc graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxBcc.bcc_unit_cell">
+<span class="sig-name descname"><span class="pre">bcc_unit_cell</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxBcc.bcc_unit_cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxBcc.bcc_unit_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a networkx graph of the simple bcc unit cell.</p>
+<dl>
+<dt>Returns:</dt><dd><p>nx.Graph:</p>
+<blockquote>
+<div><p>A  networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxBcc.simple_bcc_lattice">
+<span class="sig-name descname"><span class="pre">simple_bcc_lattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxBcc.simple_bcc_lattice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxBcc.simple_bcc_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as simple bcc lattice.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number for the unit cell.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxChain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxChain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxChain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxChain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, 1D chain graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxChain.simple_chain">
+<span class="sig-name descname"><span class="pre">simple_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxChain.simple_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxChain.simple_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as a simple 1D chain.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Length of the chain.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxCrystal">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxCrystal</span></span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxCrystal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxCrystal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A base class for spatial, crystal-like graphs.</p>
+<blockquote>
+<div><p>G (nx.Graph):</p>
+<blockquote>
+<div><p>An internal networkx graph variable.</p>
+</div></blockquote>
+<p>dict_cells (dictionary):</p>
+<blockquote>
+<div><p>A dictionary of the current cells.</p>
+</div></blockquote>
+<p>lattice_constant (float):</p>
+<blockquote>
+<div><p>Scale for the lattice. spacing</p>
+</div></blockquote>
+<p>translation_length (float):</p>
+<blockquote>
+<div><p>Scale for the translational offset.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxCrystal.lattice_translation">
+<span class="sig-name descname"><span class="pre">lattice_translation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxCrystal.lattice_translation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxCrystal.lattice_translation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a networkx graph, initialzed from given unit cell and offset.</p>
+<dl>
+<dt>Args:</dt><dd><p>t (ndarray):</p>
+<blockquote>
+<div><p>A translational offset for the lattice.</p>
+</div></blockquote>
+<p>T (nx.Graph):</p>
+<blockquote>
+<div><p>A networkx graph, unit cell.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph: A simple, periodic Graph.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxCrystal.periodic_cell_structure">
+<span class="sig-name descname"><span class="pre">periodic_cell_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxCrystal.periodic_cell_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxCrystal.periodic_cell_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph variable by periodically repeating the chosen
+unitcell type.</p>
+<dl>
+<dt>Args:</dt><dd><p>cell (nx.Graph):</p>
+<blockquote>
+<div><p>A networkx graph, unit cell.</p>
+</div></blockquote>
+<p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number for the unit cells.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxDiamond">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxDiamond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxDiamond"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxDiamond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, diamond graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxDiamond.diamond_lattice">
+<span class="sig-name descname"><span class="pre">diamond_lattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxDiamond.diamond_lattice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxDiamond.diamond_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as diamond lattice.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number for the unit cell.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxDiamond.diamond_unit_cell">
+<span class="sig-name descname"><span class="pre">diamond_unit_cell</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxDiamond.diamond_unit_cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxDiamond.diamond_unit_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a networkx graph of the dioamond unit cell.</p>
+<dl>
+<dt>Returns:</dt><dd><p>nx.Graph:</p>
+<blockquote>
+<div><p>A  networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxFcc">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxFcc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxFcc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxFcc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, simple fcc graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxFcc.fcc_unit_cell">
+<span class="sig-name descname"><span class="pre">fcc_unit_cell</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxFcc.fcc_unit_cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxFcc.fcc_unit_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a networkx graph of the simple fcc unit cell.</p>
+<dl>
+<dt>Returns:</dt><dd><p>nx.Graph:</p>
+<blockquote>
+<div><p>A  networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxFcc.simple_fcc_lattice">
+<span class="sig-name descname"><span class="pre">simple_fcc_lattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxFcc.simple_fcc_lattice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxFcc.simple_fcc_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as simple fcc lattice.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number for the unit cell.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxHexagonal">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxHexagonal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tiling_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxHexagonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxHexagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, planar hexagonal graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxHexagonal.hexagonal_grid">
+<span class="sig-name descname"><span class="pre">hexagonal_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tiling_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic_bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxHexagonal.hexagonal_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxHexagonal.hexagonal_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as hexagonal grid, using the networkx graph
+generator.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxLaves">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxLaves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxLaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxLaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, Laves graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxLaves.laves_lattice">
+<span class="sig-name descname"><span class="pre">laves_lattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxLaves.laves_lattice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxLaves.laves_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as laves lattice.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number for the unit cell.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxSimple">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxSimple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxSimple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxSimple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, simple cubic graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxSimple.simple_cubic_lattice">
+<span class="sig-name descname"><span class="pre">simple_cubic_lattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxSimple.simple_cubic_lattice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxSimple.simple_cubic_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as simple cubic lattice.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number for the unit cell.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxSimple.simple_unit_cell">
+<span class="sig-name descname"><span class="pre">simple_unit_cell</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxSimple.simple_unit_cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxSimple.simple_unit_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a networkx graph of the simbple cubic unit cell.</p>
+<dl>
+<dt>Returns:</dt><dd><p>nx.Graph:</p>
+<blockquote>
+<div><p>A  networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxSquare">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxSquare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tiling_factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxSquare"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxSquare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, simpley tiled graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxSquare.square_grid">
+<span class="sig-name descname"><span class="pre">square_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxSquare.square_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxSquare.square_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as square grid.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxTriagonalPlanar">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxTriagonalPlanar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tiling_factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxTriagonalPlanar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxTriagonalPlanar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, planar triangulated graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxTriagonalPlanar.construct_wing">
+<span class="sig-name descname"><span class="pre">construct_wing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxTriagonalPlanar.construct_wing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxTriagonalPlanar.construct_wing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate new nodes and connections from the spines of the hexagon.</p>
+<dl>
+<dt>Args:</dt><dd><p>a (int):</p>
+<blockquote>
+<div><p>+-1, setting the currently constructed hemisphere.</p>
+</div></blockquote>
+<p>n (int):</p>
+<blockquote>
+<div><p>Length of the hexagon’s outer sites.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxTriagonalPlanar.triangulated_hexagon_lattice">
+<span class="sig-name descname"><span class="pre">triangulated_hexagon_lattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxTriagonalPlanar.triangulated_hexagon_lattice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxTriagonalPlanar.triangulated_hexagon_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate new nodes and connections for the spine of the hexagon.</p>
+<dl>
+<dt>Args:</dt><dd><p>n (int):</p>
+<blockquote>
+<div><p>Length of the hexagon’s outer sites.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxTriagonalStack">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">NetworkxTriagonalStack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stacks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiling_factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxTriagonalStack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxTriagonalStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A derived class for spatial, stacked, triangulated graphs, contained in
+hexagonal shapes.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxTriagonalStack.construct_spine_stack">
+<span class="sig-name descname"><span class="pre">construct_spine_stack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxTriagonalStack.construct_spine_stack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxTriagonalStack.construct_spine_stack" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Generate new nodes and connections for spines of stacked hexagons of</dt><dd><p>the internal graph and set spine length internally.</p>
+</dd>
+<dt>Args:</dt><dd><p>z (float):</p>
+<blockquote>
+<div><p>The current stack indicator.</p>
+</div></blockquote>
+<p>n (int):</p>
+<blockquote>
+<div><p>Length of the hexagon’s outer sites.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxTriagonalStack.construct_wing_stack">
+<span class="sig-name descname"><span class="pre">construct_wing_stack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxTriagonalStack.construct_wing_stack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxTriagonalStack.construct_wing_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate new nodes and connections from the spines for each stacked
+hexagon.</p>
+<dl>
+<dt>Args:</dt><dd><p>z (float):</p>
+<blockquote>
+<div><p>The current stack indicator.</p>
+</div></blockquote>
+<p>a (int):</p>
+<blockquote>
+<div><p>+-1, setting the currently constructed hemisphere.</p>
+</div></blockquote>
+<p>n (int):</p>
+<blockquote>
+<div><p>Length of the hexagon’s outer sites.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxTriagonalStack.crosslink_stacks">
+<span class="sig-name descname"><span class="pre">crosslink_stacks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxTriagonalStack.crosslink_stacks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxTriagonalStack.crosslink_stacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Crosslink the stacked hexagons to closest layer neighbor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.NetworkxTriagonalStack.triangulated_hexagon_stack">
+<span class="sig-name descname"><span class="pre">triangulated_hexagon_stack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stacks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#NetworkxTriagonalStack.triangulated_hexagon_stack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.NetworkxTriagonalStack.triangulated_hexagon_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the internal graph as stacked, triangulated lattice, contained in
+hexagonal shapes.</p>
+<dl>
+<dt>Args:</dt><dd><p>stacks (int):</p>
+<blockquote>
+<div><p>The number of layers.</p>
+</div></blockquote>
+<p>num_periods (int):</p>
+<blockquote>
+<div><p>Length of the hexagon’s spine.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.init_graph_from_asymCrystal">
+<span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">init_graph_from_asymCrystal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crystal_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodsZ</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodsXY</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#init_graph_from_asymCrystal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.init_graph_from_asymCrystal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a spatially embedded graph, with based on an asymmetric
+crystal lattice.</p>
+<dl>
+<dt>Args:</dt><dd><p>crystal_type (string):</p>
+<blockquote>
+<div><p>The type of crystal skeleton (trigonal_stack).</p>
+</div></blockquote>
+<p>periodsZ (int):</p>
+<blockquote>
+<div><p>Vertical repetition number of the lattice’s unit cell.</p>
+</div></blockquote>
+<p>periodsXY (int):</p>
+<blockquote>
+<div><p>Lateral repetition number of the lattice’s unit cell.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph: A networkx graph.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kirchhoff.init_crystal.init_graph_from_crystal">
+<span class="sig-prename descclassname"><span class="pre">kirchhoff.init_crystal.</span></span><span class="sig-name descname"><span class="pre">init_graph_from_crystal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crystal_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_crystal.html#init_graph_from_crystal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_crystal.init_graph_from_crystal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a spatially embedded graph, with based on crystal lattice.</p>
+<dl>
+<dt>Args:</dt><dd><p>crystal_type (string):</p>
+<blockquote>
+<div><p>The type of crystal skeleton (default, simple, chain, bcc, fcc,
+diamond, laves, square, hexagonal, trigonal_planar).</p>
+</div></blockquote>
+<p>periods (int):</p>
+<blockquote>
+<div><p>Repetition number of the lattice’s unit cell.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph: A networkx graph.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-kirchhoff.init_dual">
 <span id="kirchhoff-init-dual"></span><h2>kirchhoff.init_dual<a class="headerlink" href="#module-kirchhoff.init_dual" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDual">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_dual.</span></span><span class="sig-name descname"><span class="pre">NetworkxDual</span></span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_crystal.NetworkxCrystal" title="kirchhoff.init_crystal.NetworkxCrystal"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_crystal.NetworkxCrystal</span></code></a></p>
+<p>A base class for spatial, dual circuits.</p>
+<blockquote>
+<div><p>layer (list):</p>
+<blockquote>
+<div><p>List of the graphs contained in the multilayer network.</p>
+</div></blockquote>
+<p>lattice_constant (float):</p>
+<blockquote>
+<div><p>Scale for the spacing between the networks.</p>
+</div></blockquote>
+<p>translation_length (float):</p>
+<blockquote>
+<div><p>Scale for the translation difference between the multiple networks.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDual.periodic_cell_structure_offset">
+<span class="sig-name descname"><span class="pre">periodic_cell_structure_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDual.periodic_cell_structure_offset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDual.periodic_cell_structure_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Repeat the unit cell with translational offset to create a graph.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>cell (nx.Graph): unit cell in networkx graph format.
+num_periods (int): Repetition number for the unit cells.
+offset (ndarray): A translational offset for the lattice.</p>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph: A simple, periodic Graph.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDual.prune_leaves">
+<span class="sig-name descname"><span class="pre">prune_leaves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDual.prune_leaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDual.prune_leaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove non-affiliated edges in dual graphs.</p>
+<dl>
+<dt>Args:</dt><dd><p>G(nx.Graph):</p>
+<blockquote>
+<div><p>A networkx graph.</p>
+</div></blockquote>
+<p>H (nx.Graph):</p>
+<blockquote>
+<div><p>A networkx graph.</p>
+</div></blockquote>
+<p>adj (list):</p>
+<blockquote>
+<div><p>A list of affiliated edge pairs of the two graphs.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>list: A list of networkx graphs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDual.relabel_networkx">
+<span class="sig-name descname"><span class="pre">relabel_networkx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDual.relabel_networkx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDual.relabel_networkx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Relabel affiliations and graph attributes.</p>
+<dl>
+<dt>Args:</dt><dd><p>G(nx.Graph):</p>
+<blockquote>
+<div><p>A networkx graph.</p>
+</div></blockquote>
+<p>H (nx.Graph):</p>
+<blockquote>
+<div><p>A networkx graph.</p>
+</div></blockquote>
+<p>adj (list):</p>
+<blockquote>
+<div><p>A list of affiliated edge pairs of the two graphs.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>list: A list of networkx graphs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDual.set_graph_adjacency">
+<span class="sig-name descname"><span class="pre">set_graph_adjacency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDual.set_graph_adjacency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDual.set_graph_adjacency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Relabel affiliations and graph attributes.</p>
+<dl>
+<dt>Args:</dt><dd><p>G (nx.Graph):</p>
+<blockquote>
+<div><p>The inner networkx graph.</p>
+</div></blockquote>
+<p>H (nx.Graph):</p>
+<blockquote>
+<div><p>The outer networkx graph.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>list:  A list of affiliated edge pairs of the two graphs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualCatenation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_dual.</span></span><span class="sig-name descname"><span class="pre">NetworkxDualCatenation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualCatenation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualCatenation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_dual.NetworkxDual" title="kirchhoff.init_dual.NetworkxDual"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_dual.NetworkxDual</span></code></a></p>
+<p>A class for spatial, dual Laves circuits.</p>
+<blockquote>
+<div><p>layer (list):</p>
+<blockquote>
+<div><p>List of the mutlilayered circuits.</p>
+</div></blockquote>
+<p>lattice_constant (float):</p>
+<blockquote>
+<div><p>Scale for the spacing between the networks.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualCatenation.dual_ladder">
+<span class="sig-name descname"><span class="pre">dual_ladder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualCatenation.dual_ladder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualCatenation.dual_ladder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set internal networkx structure, dual ladder.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number of the unit tile.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualCrossMesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_dual.</span></span><span class="sig-name descname"><span class="pre">NetworkxDualCrossMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualCrossMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualCrossMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_dual.NetworkxDual" title="kirchhoff.init_dual.NetworkxDual"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_dual.NetworkxDual</span></code></a></p>
+<p>A class for spatial, dual Laves circuits.</p>
+<blockquote>
+<div><p>layer (list):</p>
+<blockquote>
+<div><p>List of the mutlilayered circuits.</p>
+</div></blockquote>
+<p>lattice_constant (float):</p>
+<blockquote>
+<div><p>Scale for the spacing between the networks.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualCrossMesh.dualCrossMesh">
+<span class="sig-name descname"><span class="pre">dualCrossMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualCrossMesh.dualCrossMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualCrossMesh.dualCrossMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set internal networkx structure, dual crossed_mesh.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number of the unit tile.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualDiamond">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_dual.</span></span><span class="sig-name descname"><span class="pre">NetworkxDualDiamond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualDiamond"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualDiamond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_dual.NetworkxDual" title="kirchhoff.init_dual.NetworkxDual"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_dual.NetworkxDual</span></code></a></p>
+<p>A class for spatial, dual diamond circuits.</p>
+<blockquote>
+<div><p>layer (list):</p>
+<blockquote>
+<div><p>List of the mutlilayered circuits.</p>
+</div></blockquote>
+<p>lattice_constant (float):</p>
+<blockquote>
+<div><p>Scale for the spacing between the networks.</p>
+</div></blockquote>
+<p>translation_length (float):</p>
+<blockquote>
+<div><p>Scale for the translation difference between the multiple networks.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualDiamond.dualDiamond">
+<span class="sig-name descname"><span class="pre">dualDiamond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualDiamond.dualDiamond"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualDiamond.dualDiamond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set internal networks structure, dual diamond.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number of the unit cells.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualDiamond.init_graph">
+<span class="sig-name descname"><span class="pre">init_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G_aux</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualDiamond.init_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualDiamond.init_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate points for a diamond lattice return dual graph
+representations.</p>
+<dl>
+<dt>Args:</dt><dd><p>G_aux (nx.Graph):</p>
+<blockquote>
+<div><p>A networkx graph.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph:</p>
+<blockquote>
+<div><p>A networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualDiamond.init_graph_nuclei">
+<span class="sig-name descname"><span class="pre">init_graph_nuclei</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G_aux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H_aux</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualDiamond.init_graph_nuclei"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualDiamond.init_graph_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Generate points for a diamond lattice and its dual via copy+translation</dt><dd><p>and return dual graph representations.</p>
+</dd>
+<dt>Args:</dt><dd><p>G_aux (nx.Graph):</p>
+<blockquote>
+<div><p>Inner networkx graph.</p>
+</div></blockquote>
+<p>H_aux (nx.Graph):</p>
+<blockquote>
+<div><p>Outer networkx graph.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph:</p>
+<blockquote>
+<div><p>Inner networkx graph.</p>
+</div></blockquote>
+<p>nx.Graph:</p>
+<blockquote>
+<div><p>Outer networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualLaves">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_dual.</span></span><span class="sig-name descname"><span class="pre">NetworkxDualLaves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualLaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualLaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_dual.NetworkxDual" title="kirchhoff.init_dual.NetworkxDual"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_dual.NetworkxDual</span></code></a></p>
+<p>A class for spatial, dual Laves circuits.</p>
+<blockquote>
+<div><p>layer (list):</p>
+<blockquote>
+<div><p>List of the mutlilayered circuits.</p>
+</div></blockquote>
+<p>lattice_constant (float):</p>
+<blockquote>
+<div><p>Scale for the spacing between the networks.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualLaves.dualLaves">
+<span class="sig-name descname"><span class="pre">dualLaves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualLaves.dualLaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualLaves.dualLaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set internal networks structure, dual diamond.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>A networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualLaves.init_graph">
+<span class="sig-name descname"><span class="pre">init_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G_aux</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualLaves.init_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualLaves.init_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Built labeled, attributed graphs from raw point sets.</p>
+<dl>
+<dt>Args:</dt><dd><p>G_aux (nx.Graph):</p>
+<blockquote>
+<div><p>Inner networkx graph holding unlabeled data.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph: A networkx graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualLaves.init_graph_nuclei">
+<span class="sig-name descname"><span class="pre">init_graph_nuclei</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G_aux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H_aux</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualLaves.init_graph_nuclei"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualLaves.init_graph_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate points for a Laves lattice and its dual via mirroring +
+translation and return dual graph representations.</p>
+<dl>
+<dt>Args:</dt><dd><p>G_aux (nx.Graph):</p>
+<blockquote>
+<div><p>Inner networkx graph.</p>
+</div></blockquote>
+<p>H_aux (nx.Graph):</p>
+<blockquote>
+<div><p>Outer networkx graph.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph: A networkx graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualLaves.laves_graph">
+<span class="sig-name descname"><span class="pre">laves_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chirality</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualLaves.laves_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualLaves.laves_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate points for a Laves lattice and its dual via mirroring +
+translation and return dual graph representations.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number of the unit cells..</p>
+</div></blockquote>
+<p>chirality (string):</p>
+<blockquote>
+<div><p>Chirality identifier for the current lattice generator.</p>
+</div></blockquote>
+<p>offset (ndarray):</p>
+<blockquote>
+<div><p>A translation vector.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>nx.Graph: A networkx graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualSimple">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">kirchhoff.init_dual.</span></span><span class="sig-name descname"><span class="pre">NetworkxDualSimple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualSimple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualSimple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kirchhoff.init_dual.NetworkxDual" title="kirchhoff.init_dual.NetworkxDual"><code class="xref py py-class docutils literal notranslate"><span class="pre">kirchhoff.init_dual.NetworkxDual</span></code></a></p>
+<p>A class for spatial, dual cubic circuits.</p>
+<blockquote>
+<div><p>layer (list):</p>
+<blockquote>
+<div><p>List of the mutlilayered circuits.</p>
+</div></blockquote>
+<p>lattice_constant (float):</p>
+<blockquote>
+<div><p>Scale for the spacing between the networks.</p>
+</div></blockquote>
+<p>translation_length (float):</p>
+<blockquote>
+<div><p>Scale for the translation difference between the multiple networks.</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualSimple.dualSimple">
+<span class="sig-name descname"><span class="pre">dualSimple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualSimple.dualSimple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualSimple.dualSimple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set internal networks structure, dual cubic.</p>
+<dl>
+<dt>Args:</dt><dd><p>num_periods (int):</p>
+<blockquote>
+<div><p>A networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualSimple.init_graph_nuclei">
+<span class="sig-name descname"><span class="pre">init_graph_nuclei</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">V</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualSimple.init_graph_nuclei"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualSimple.init_graph_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate points for a cubic lattice and its dual via Voronois
+tesselation and return dual graph representations.</p>
+<dl>
+<dt>Args:</dt><dd><p>Voronoi (scipy.spatial.Voronoi):</p>
+<blockquote>
+<div><p>A Tesselation object.</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><p>nx.Graph:</p>
+<blockquote>
+<div><p>Inner networkx graph.</p>
+</div></blockquote>
+<p>nx.Graph:</p>
+<blockquote>
+<div><p>Outer networkx graph.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.NetworkxDualSimple.set_graph_adjacency">
+<span class="sig-name descname"><span class="pre">set_graph_adjacency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">V</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">H</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#NetworkxDualSimple.set_graph_adjacency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.NetworkxDualSimple.set_graph_adjacency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the affiliation list of two dual cubic lattices.</p>
+<dl>
+<dt>Args:</dt><dd><p>Voronoi (scipy.spatial.Voronoi):</p>
+<blockquote>
+<div><p>A Voronoi-Tesselation object.</p>
+</div></blockquote>
+<p>G (nx.Graph):</p>
+<blockquote>
+<div><p>The inner networkx graph.</p>
+</div></blockquote>
+<p>H (nx.Graph):</p>
+<blockquote>
+<div><p>The outer networkx graph.</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><p>list:</p>
+<blockquote>
+<div><p>The edge affiliation list of the dual cubic lattice.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.init_dualCatenation">
+<span class="sig-prename descclassname"><span class="pre">kirchhoff.init_dual.</span></span><span class="sig-name descname"><span class="pre">init_dualCatenation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dual_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#init_dualCatenation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.init_dualCatenation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a dual spatially embedded multilayer graph, with internal graphs
+based on simple catenated network skeletons.</p>
+<dl>
+<dt>Args:</dt><dd><p>dual_type (string):</p>
+<blockquote>
+<div><p>The type of dual skeleton (simple, diamond, laves, catenation).</p>
+</div></blockquote>
+<p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number of the lattice’s unit cell.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>NetworkxDual: A dual networkx object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kirchhoff.init_dual.init_dual_minsurf_graphs">
+<span class="sig-prename descclassname"><span class="pre">kirchhoff.init_dual.</span></span><span class="sig-name descname"><span class="pre">init_dual_minsurf_graphs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dual_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_periods</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kirchhoff/init_dual.html#init_dual_minsurf_graphs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#kirchhoff.init_dual.init_dual_minsurf_graphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a dual spatially embedded multilayer graph, with internal graphs
+based on the network skeletons of triply-periodic minimal surfaces.</p>
+<dl>
+<dt>Args:</dt><dd><p>dual_type (string):</p>
+<blockquote>
+<div><p>The type of dual skeleton (simple, diamond, laves, catenation).</p>
+</div></blockquote>
+<p>num_periods (int):</p>
+<blockquote>
+<div><p>Repetition number of the lattice’s unit cell.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>NetworkxDual: A dual networkx object.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 

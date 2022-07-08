@@ -40,14 +40,17 @@ kirchhoff.io_networkx
 kirchhoff.init_random
 ------------------------------------------------
 .. automodule:: kirchhoff.init_random
+   :members:
    :show-inheritance:
 
 kirchhoff.init_crystal
 ------------------------------------------------
 .. automodule:: kirchhoff.init_crystal
    :show-inheritance:
+   :members:
 
 kirchhoff.init_dual
 ------------------------------------------------
 .. automodule:: kirchhoff.init_dual
    :show-inheritance:
+   :members:

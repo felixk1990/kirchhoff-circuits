@@ -1,0 +1,455 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kirchhoff.init_random &#8212; kirchhoff-circuits  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.init_random</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kirchhoff.init_random</h1><div class="highlight"><pre>
+<span></span><span class="c1"># @Author: Felix Kramer &lt;kramer&gt;</span>
+<span class="c1"># @Date:   24-02-2022</span>
+<span class="c1"># @Email:  felixuwekramer@proton.me</span>
+<span class="c1"># @Last modified by:   kramer</span>
+<span class="c1"># @Last modified time: 08-07-2022</span>
+
+
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">Voronoi</span>
+<span class="kn">import</span> <span class="nn">random</span> <span class="k">as</span> <span class="nn">rd</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+
+<div class="viewcode-block" id="init_graph_from_random"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.init_graph_from_random">[docs]</a><span class="k">def</span> <span class="nf">init_graph_from_random</span><span class="p">(</span><span class="n">random_type</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a random spatial graph customized by type and size.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        random_type (string):\n</span>
+<span class="sd">            The type of random lattice to be constructed(voronoi_planar,</span>
+<span class="sd">            voronoi_volume).</span>
+<span class="sd">        periods (int):\n</span>
+<span class="sd">            Number of random points.</span>
+<span class="sd">        sidelength (float):\n</span>
+<span class="sd">            The box size into which random points in space are generated.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        nx.Graph: A random spatial graph.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">choose_constructor_option</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">NetworkxVoronoiPlanar</span><span class="p">,</span>
+        <span class="s1">&#39;voronoi_planar&#39;</span><span class="p">:</span> <span class="n">NetworkxVoronoiPlanar</span><span class="p">,</span>
+        <span class="s1">&#39;voronoi_volume&#39;</span><span class="p">:</span> <span class="n">NetworkxVoronoiVolume</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">random_type</span> <span class="ow">in</span> <span class="n">choose_constructor_option</span><span class="p">:</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="n">choose_constructor_option</span><span class="p">[</span><span class="n">random_type</span><span class="p">](</span>
+            <span class="n">periods</span><span class="p">,</span>
+            <span class="n">sidelength</span>
+            <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning, crystal type unknown, set default: simple&#39;</span><span class="p">)</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="n">choose_constructor_option</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">](</span><span class="n">periods</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">G</span></div>
+
+
+<div class="viewcode-block" id="NetworkxRandom"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxRandom">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">NetworkxRandom</span><span class="p">():</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A base class for spatial, random networks.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        num_periods(int):\n</span>
+<span class="sd">            Number of points for internal Voronoi construction.</span>
+<span class="sd">        sidelength (float):\n</span>
+<span class="sd">            Box length for spatial initialization.</span>
+<span class="sd">        G (dictionary):\n</span>
+<span class="sd">            An internal simple graph.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_periods</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sidelength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">G</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NetworkxRandom.mirror_boxpoints"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxRandom.mirror_boxpoints">[docs]</a>    <span class="k">def</span> <span class="nf">mirror_boxpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">sl</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Periodically mirror points in 2D for voronoi construction.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            points (list):\n</span>
+<span class="sd">                The original list of points (x,y)</span>
+<span class="sd">            sl (float):\n</span>
+<span class="sd">                The sidelength, acting as scale for the transition vector.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: A matrix of all points and their mirrors</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">points_matrix</span> <span class="o">=</span> <span class="n">points</span>
+        <span class="n">intervall</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">intervall</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">intervall</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">j</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">points_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                        <span class="p">(</span><span class="n">points_matrix</span><span class="p">,</span> <span class="n">points</span><span class="o">+</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">sl</span><span class="p">,</span> <span class="n">j</span><span class="o">*</span><span class="n">sl</span><span class="p">))</span>
+                        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">points_matrix</span></div>
+
+<div class="viewcode-block" id="NetworkxRandom.mirror_cubepoints"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxRandom.mirror_cubepoints">[docs]</a>    <span class="k">def</span> <span class="nf">mirror_cubepoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">sl</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Periodically mirror points in 3D for voronoi construction.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            points (list):\n</span>
+<span class="sd">                The original list of points (x,y,z)</span>
+<span class="sd">            sl (float):\n</span>
+<span class="sd">                The sidelength, acting as scale for the transition vector.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: A matrix of all points and their mirrors</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">points_matrix</span> <span class="o">=</span> <span class="n">points</span>
+        <span class="n">intervall</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">intervall</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">intervall</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">intervall</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">j</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                        <span class="n">points_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                            <span class="p">(</span><span class="n">points_matrix</span><span class="p">,</span> <span class="n">points</span><span class="o">+</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">sl</span><span class="p">,</span> <span class="n">j</span><span class="o">*</span><span class="n">sl</span><span class="p">,</span> <span class="n">k</span><span class="o">*</span><span class="n">sl</span><span class="p">))</span>
+                            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">points_matrix</span></div>
+    <span class="c1"># construct random 3d graph, confined in a box</span>
+
+<div class="viewcode-block" id="NetworkxRandom.is_in_box"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxRandom.is_in_box">[docs]</a>    <span class="k">def</span> <span class="nf">is_in_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">sl</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Test whether new random point is inside the constraining boundaries.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            v (list):\n</span>
+<span class="sd">                The point vector to be tested.</span>
+<span class="sd">            sl (float):\n</span>
+<span class="sd">                The sidelength, acting as scale for the transition vector.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: The boolean value, True if inside the original volume.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">sl</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">sl</span><span class="p">):</span>
+            <span class="n">answer</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">sl</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">sl</span><span class="p">):</span>
+            <span class="n">answer</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">sl</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">sl</span><span class="p">):</span>
+            <span class="n">answer</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">answer</span></div></div>
+
+
+<div class="viewcode-block" id="NetworkxVoronoiPlanar"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxVoronoiPlanar">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">NetworkxVoronoiPlanar</span><span class="p">(</span><span class="n">NetworkxRandom</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class algorithms to generate spatial, 2D random networks, generated via</span>
+<span class="sd">    voronoi tesselation of a periodic plane.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        num_periods(int):\n</span>
+<span class="sd">            Number of points for internal Voronoi construction.</span>
+<span class="sd">        sidelength (float):\n</span>
+<span class="sd">            Box length for spatial initialization.</span>
+<span class="sd">        G (dict):\n</span>
+<span class="sd">            An internal simple graph.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_voronoi_periodic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_periods</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sidelength</span><span class="p">)</span>
+        <span class="c1"># construct random 2d graph, confined in a certain spherical boundary,</span>
+        <span class="c1"># connections set via voronoi tesselation</span>
+
+<div class="viewcode-block" id="NetworkxVoronoiPlanar.construct_voronoi_periodic"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxVoronoiPlanar.construct_voronoi_periodic">[docs]</a>    <span class="k">def</span> <span class="nf">construct_voronoi_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate random points in 2D, mirror them periodically and perform a</span>
+<span class="sd">        Voronoi tesselation for a 2D random point set.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            number (int):\n</span>
+<span class="sd">                The number of points to be generated.</span>
+<span class="sd">            sidelength (float):\n</span>
+<span class="sd">                The sidelength of the box which hold points</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Voronoi: A scipy.spatial.Voronoi output object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">V</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># create points for voronoi tesselation</span>
+        <span class="n">XY</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">)</span>
+
+            <span class="n">XY</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XY</span> <span class="o">=</span> <span class="n">XY</span>
+        <span class="n">XY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mirror_boxpoints</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">XY</span><span class="p">),</span> <span class="n">sidelength</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XY_periodic</span> <span class="o">=</span> <span class="n">XY</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">Voronoi</span><span class="p">(</span><span class="n">XY</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">V</span></div>
+
+<div class="viewcode-block" id="NetworkxVoronoiPlanar.random_voronoi_periodic"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxVoronoiPlanar.random_voronoi_periodic">[docs]</a>    <span class="k">def</span> <span class="nf">random_voronoi_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a spatially embedded in 2D, random networkx internally for</span>
+<span class="sd">        given size parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            number (int):\n</span>
+<span class="sd">                The number of points to be generated.</span>
+<span class="sd">            sidelength (float):\n</span>
+<span class="sd">                The sidelength of the box which hold points</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># construct a core of reandom points in 2D box for voronoi tesselation,</span>
+        <span class="c1"># mirror the primary box so a total of 9 cells is created with the</span>
+        <span class="c1"># initial as core</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_voronoi_periodic</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">)</span>
+        <span class="c1"># pick up the face of the core which correspond to a periodic voronoi</span>
+        <span class="c1"># lattice</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">point_region</span><span class="p">):</span>
+            <span class="n">faces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">regions</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="n">number</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="c1"># use periodic kernel to construct the correponding network</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">faces</span><span class="p">[:])):</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">faces</span><span class="p">[:]):</span>
+                <span class="k">break</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">faces</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">faces</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">lablel</span><span class="o">=</span><span class="n">j</span><span class="p">)</span>
+
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">V</span><span class="o">.</span><span class="n">ridge_vertices</span><span class="p">:</span>
+
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+                    <span class="n">h</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+
+                    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="c1"># &#39;slope&#39;: (V.vertices[i[h-(l+1)]],</span>
+                        <span class="c1"># V.vertices[i[h-l]]),</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+                    <span class="p">}</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="n">h</span><span class="o">-</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)],</span> <span class="n">i</span><span class="p">[</span><span class="n">h</span><span class="o">-</span><span class="n">j</span><span class="p">],</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+                    <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">break</span></div></div>
+
+
+<div class="viewcode-block" id="NetworkxVoronoiVolume"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxVoronoiVolume">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">NetworkxVoronoiVolume</span><span class="p">(</span><span class="n">NetworkxRandom</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class algorithms to generate spatial, 3D random networks, generated via</span>
+<span class="sd">     voronoi tesselation of a periodic volume.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        num_periods(int):\n</span>
+<span class="sd">            Number of points for internal Voronoi construction.</span>
+<span class="sd">        sidelength (float):\n</span>
+<span class="sd">            Box length for spatial initialization.</span>
+<span class="sd">        G (dict):\n</span>
+<span class="sd">            An internal simple graph.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_voronoi_periodic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_periods</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sidelength</span><span class="p">)</span>
+    <span class="c1"># construct random 3d graph, confined in a certain spherical boundary,</span>
+    <span class="c1"># connections set via voronoi tesselation</span>
+
+<div class="viewcode-block" id="NetworkxVoronoiVolume.construct_voronoi_periodic"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxVoronoiVolume.construct_voronoi_periodic">[docs]</a>    <span class="k">def</span> <span class="nf">construct_voronoi_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate random points in 3D, mirror them periodically and perform a</span>
+<span class="sd">        Voronoi tesselation for a 3D random point set.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            number (int): The number of points to be generated.</span>
+<span class="sd">            sidelength (float): The sidelength of the box which hold points</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Voronoi: A scipy.spatial.Voronoi output object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># create points for voronoi tesselation</span>
+
+        <span class="n">XYZ</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">)</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">)</span>
+
+            <span class="n">XYZ</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XYZ</span> <span class="o">=</span> <span class="n">XYZ</span>
+        <span class="n">XYZ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mirror_cubepoints</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">XYZ</span><span class="p">),</span> <span class="n">sidelength</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XYZ_periodic</span> <span class="o">=</span> <span class="n">XYZ</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">Voronoi</span><span class="p">(</span><span class="n">XYZ</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">V</span></div>
+
+<div class="viewcode-block" id="NetworkxVoronoiVolume.random_voronoi_periodic"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_random.NetworkxVoronoiVolume.random_voronoi_periodic">[docs]</a>    <span class="k">def</span> <span class="nf">random_voronoi_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a spatially embedded in 3D, random networkx internally for given</span>
+<span class="sd">         size parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            number (int): The number of points to be generated.</span>
+<span class="sd">            sidelength (float): The sidelength of the box which hold points</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># construct a core of reandom points in 2D box for voronoi tesselation,</span>
+        <span class="c1"># mirror the primary box so a total of 9 cells is created with the</span>
+        <span class="c1"># initial as core</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_voronoi_periodic</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">sidelength</span><span class="p">)</span>
+        <span class="c1"># pick up the face of the core which correspond to a periodic</span>
+        <span class="c1"># voronoi lattice</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">point_region</span><span class="p">):</span>
+            <span class="n">faces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">regions</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="n">number</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="c1"># use periodic kernel to construct the correponding network</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">faces</span><span class="p">[:])):</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">faces</span><span class="p">[:]):</span>
+                <span class="k">break</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">faces</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">faces</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">lablel</span><span class="o">=</span><span class="n">j</span><span class="p">)</span>
+
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">V</span><span class="o">.</span><span class="n">ridge_vertices</span><span class="p">:</span>
+
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+                    <span class="n">h</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="c1"># &#39;slope&#39;: (V.vertices[i[h-(l+1)]],</span>
+                        <span class="c1"># V.vertices[i[h-l]]),</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">k</span>
+                    <span class="p">}</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="n">h</span><span class="o">-</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)],</span> <span class="n">i</span><span class="p">[</span><span class="n">h</span><span class="o">-</span><span class="n">j</span><span class="p">],</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+                    <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">break</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.init_random</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Felix Kramer.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

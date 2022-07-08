@@ -1,0 +1,933 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kirchhoff.init_dual &#8212; kirchhoff-circuits  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.init_dual</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kirchhoff.init_dual</h1><div class="highlight"><pre>
+<span></span><span class="c1"># @Author: Felix Kramer &lt;kramer&gt;</span>
+<span class="c1"># @Date:   24-02-2022</span>
+<span class="c1"># @Email:  felixuwekramer@proton.me</span>
+<span class="c1"># @Last modified by:   kramer</span>
+<span class="c1"># @Last modified time: 08-07-2022</span>
+
+
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">Voronoi</span>
+<span class="kn">import</span> <span class="nn">kirchhoff.init_crystal</span> <span class="k">as</span> <span class="nn">init_crystal</span>
+
+
+<div class="viewcode-block" id="init_dual_minsurf_graphs"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.init_dual_minsurf_graphs">[docs]</a><span class="k">def</span> <span class="nf">init_dual_minsurf_graphs</span><span class="p">(</span><span class="n">dual_type</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a dual spatially embedded multilayer graph, with internal graphs</span>
+<span class="sd">    based on the network skeletons of triply-periodic minimal surfaces.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dual_type (string):\n</span>
+<span class="sd">            The type of dual skeleton (simple, diamond, laves, catenation).</span>
+<span class="sd">        num_periods (int):\n</span>
+<span class="sd">            Repetition number of the lattice&#39;s unit cell.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        NetworkxDual: A dual networkx object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">plexus_mode</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">NetworkxDualSimple</span><span class="p">,</span>
+        <span class="s1">&#39;simple&#39;</span><span class="p">:</span> <span class="n">NetworkxDualSimple</span><span class="p">,</span>
+        <span class="s1">&#39;diamond&#39;</span><span class="p">:</span> <span class="n">NetworkxDualDiamond</span><span class="p">,</span>
+        <span class="s1">&#39;laves&#39;</span><span class="p">:</span> <span class="n">NetworkxDualLaves</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">dual_type</span> <span class="ow">in</span> <span class="n">plexus_mode</span><span class="p">:</span>
+        <span class="n">dual_graph</span> <span class="o">=</span> <span class="n">plexus_mode</span><span class="p">[</span><span class="n">dual_type</span><span class="p">](</span><span class="n">num_periods</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: Invalid graph mode, choose default&#39;</span><span class="p">)</span>
+        <span class="n">dual_graph</span> <span class="o">=</span> <span class="n">plexus_mode</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">](</span><span class="n">num_periods</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dual_graph</span></div>
+
+
+<div class="viewcode-block" id="init_dualCatenation"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.init_dualCatenation">[docs]</a><span class="k">def</span> <span class="nf">init_dualCatenation</span><span class="p">(</span><span class="n">dual_type</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a dual spatially embedded multilayer graph, with internal graphs</span>
+<span class="sd">    based on simple catenated network skeletons.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dual_type (string):\n</span>
+<span class="sd">            The type of dual skeleton (simple, diamond, laves, catenation).</span>
+<span class="sd">        num_periods (int):\n</span>
+<span class="sd">            Repetition number of the lattice&#39;s unit cell.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        NetworkxDual: A dual networkx object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plexus_mode</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">NetworkxDualCatenation</span><span class="p">,</span>
+        <span class="s1">&#39;catenation&#39;</span><span class="p">:</span> <span class="n">NetworkxDualCatenation</span><span class="p">,</span>
+        <span class="s1">&#39;crossMesh&#39;</span><span class="p">:</span> <span class="n">NetworkxDualCrossMesh</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">dual_type</span> <span class="ow">in</span> <span class="n">plexus_mode</span><span class="p">:</span>
+        <span class="n">dual_graph</span> <span class="o">=</span> <span class="n">plexus_mode</span><span class="p">[</span><span class="n">dual_type</span><span class="p">](</span><span class="n">num_periods</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: Invalid graph mode, choose default&#39;</span><span class="p">)</span>
+        <span class="n">dual_graph</span> <span class="o">=</span> <span class="n">plexus_mode</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">](</span><span class="n">num_periods</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dual_graph</span></div>
+
+
+<div class="viewcode-block" id="NetworkxDual"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDual">[docs]</a><span class="k">class</span> <span class="nc">NetworkxDual</span><span class="p">(</span><span class="n">init_crystal</span><span class="o">.</span><span class="n">NetworkxCrystal</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A base class for spatial, dual circuits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        layer (list):\n</span>
+<span class="sd">            List of the graphs contained in the multilayer network.</span>
+<span class="sd">        lattice_constant (float):\n</span>
+<span class="sd">            Scale for the spacing between the networks.</span>
+<span class="sd">        translation_length (float):\n</span>
+<span class="sd">            Scale for the translation difference between the multiple networks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A constructor for multilayer circuit objects, setting default values</span>
+<span class="sd">        for the interal graph objects and geometry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">NetworkxDual</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(),</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">translation_length</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="NetworkxDual.periodic_cell_structure_offset"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDual.periodic_cell_structure_offset">[docs]</a>    <span class="k">def</span> <span class="nf">periodic_cell_structure_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Repeat the unit cell with translational offset to create a graph.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cell (nx.Graph): unit cell in networkx graph format.</span>
+<span class="sd">            num_periods (int): Repetition number for the unit cells.</span>
+<span class="sd">            offset (ndarray): A translational offset for the lattice.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            nx.Graph: A simple, periodic Graph.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">L</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">periods</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_periods</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="o">+</span><span class="n">k</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">translation_length</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
+                        <span class="n">TD</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_translation</span><span class="p">(</span><span class="n">offset</span><span class="o">+</span><span class="n">v</span><span class="p">,</span> <span class="n">cell</span><span class="p">)</span>
+                        <span class="n">L</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">TD</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">L</span></div>
+
+<div class="viewcode-block" id="NetworkxDual.prune_leaves"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDual.prune_leaves">[docs]</a>    <span class="k">def</span> <span class="nf">prune_leaves</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">adj</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove non-affiliated edges in dual graphs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            G(nx.Graph):\n</span>
+<span class="sd">                A networkx graph.</span>
+<span class="sd">            H (nx.Graph):\n</span>
+<span class="sd">                A networkx graph.</span>
+<span class="sd">            adj (list):\n</span>
+<span class="sd">                A list of affiliated edge pairs of the two graphs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: A list of networkx graphs.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">K</span> <span class="o">=</span> <span class="p">[</span><span class="n">G</span><span class="p">,</span> <span class="n">H</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+
+            <span class="n">adj_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adj</span><span class="p">)[:,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">list_e</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">list_e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">adj_x</span><span class="p">)</span> <span class="o">==</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]):</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">remove_edge</span><span class="p">(</span><span class="o">*</span><span class="n">e</span><span class="p">)</span>
+
+            <span class="n">list_n</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">list_n</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">K</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="NetworkxDual.relabel_networkx"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDual.relabel_networkx">[docs]</a>    <span class="k">def</span> <span class="nf">relabel_networkx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">adj</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Relabel affiliations and graph attributes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            G(nx.Graph):\n</span>
+<span class="sd">                A networkx graph.</span>
+<span class="sd">            H (nx.Graph):\n</span>
+<span class="sd">                A networkx graph.</span>
+<span class="sd">            adj (list):\n</span>
+<span class="sd">                A list of affiliated edge pairs of the two graphs.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: A list of networkx graphs.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="p">[</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">]</span>
+        <span class="n">aff</span> <span class="o">=</span> <span class="p">[{},</span> <span class="p">{}]</span>
+        <span class="n">e_adj</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">e_adj_idx</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="p">[</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(),</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()]</span>
+        <span class="n">dict_P</span> <span class="o">=</span> <span class="p">[[{},</span> <span class="p">{},</span> <span class="p">{}],</span> <span class="p">[{},</span> <span class="p">{},</span> <span class="p">{}]]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+
+            <span class="k">for</span> <span class="n">idx_n</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">nodes</span><span class="p">()):</span>
+                <span class="n">opt</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+                <span class="p">}</span>
+                <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">idx_n</span><span class="p">,</span> <span class="o">**</span><span class="n">opt</span><span class="p">)</span>
+                <span class="n">dict_P</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">n</span><span class="p">:</span> <span class="n">idx_n</span><span class="p">})</span>
+                <span class="n">aff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">idx_n</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">idx_e</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">edges</span><span class="p">()):</span>
+                <span class="n">opt</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="c1"># &#39;slope&#39;: [K[i].nodes[e[0]][&#39;pos&#39;],</span>
+                    <span class="c1"># K[i].nodes[e[1]][&#39;pos&#39;]],</span>
+                    <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+                <span class="p">}</span>
+                <span class="n">v</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">dict_P</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">dict_P</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+                <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="o">**</span><span class="n">opt</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">edges</span><span class="p">()):</span>
+                <span class="n">dict_P</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]:</span> <span class="n">j</span><span class="p">})</span>
+                <span class="n">dict_P</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]:</span> <span class="n">e</span><span class="p">})</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">adj</span><span class="p">:</span>
+
+            <span class="n">e</span> <span class="o">=</span> <span class="p">[</span><span class="n">dict_P</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">dict_P</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span>
+            <span class="n">E</span> <span class="o">=</span> <span class="p">[</span><span class="n">dict_P</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">dict_P</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span>
+            <span class="n">e_adj</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="n">e_adj_idx</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">E</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">E</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+                <span class="n">n0</span> <span class="o">=</span> <span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">n1</span> <span class="o">=</span> <span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">aff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">n0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span>
+                <span class="n">aff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">n1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">aff</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">aff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]))</span>
+                <span class="n">aux</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">aff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]:</span>
+                    <span class="n">aux</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_P</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)][</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+                <span class="n">aff</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">aux</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">e_adj</span> <span class="o">=</span> <span class="n">e_adj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">e_adj_idx</span> <span class="o">=</span> <span class="n">e_adj_idx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_adj</span> <span class="o">=</span> <span class="p">[</span><span class="n">aff</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aff</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">P</span></div>
+
+<div class="viewcode-block" id="NetworkxDual.set_graph_adjacency"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDual.set_graph_adjacency">[docs]</a>    <span class="k">def</span> <span class="nf">set_graph_adjacency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Relabel affiliations and graph attributes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            G (nx.Graph):\n</span>
+<span class="sd">                The inner networkx graph.</span>
+<span class="sd">            H (nx.Graph):\n</span>
+<span class="sd">                The outer networkx graph.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list:  A list of affiliated edge pairs of the two graphs.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">adj</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">()):</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">],</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">edges</span><span class="p">()):</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">],</span> <span class="n">H</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">])</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="mf">14.</span><span class="p">:</span>
+                    <span class="n">adj</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">],</span> <span class="n">H</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">f</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]])</span>
+
+        <span class="k">return</span> <span class="n">adj</span></div></div>
+
+
+<div class="viewcode-block" id="NetworkxDualSimple"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualSimple">[docs]</a><span class="k">class</span> <span class="nc">NetworkxDualSimple</span><span class="p">(</span><span class="n">NetworkxDual</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for spatial, dual cubic circuits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">        layer (list):\n</span>
+<span class="sd">            List of the mutlilayered circuits.</span>
+<span class="sd">        lattice_constant (float):\n</span>
+<span class="sd">            Scale for the spacing between the networks.</span>
+<span class="sd">        translation_length (float):\n</span>
+<span class="sd">            Scale for the translation difference between the multiple networks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A constructor for multilayer circuit simple objects, setting default</span>
+<span class="sd">        values for the interal graph objects and geometry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">NetworkxDualSimple</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">translation_length</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dualSimple</span><span class="p">(</span><span class="n">num_periods</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NetworkxDualSimple.dualSimple"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualSimple.dualSimple">[docs]</a>    <span class="k">def</span> <span class="nf">dualSimple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set internal networks structure, dual cubic.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            num_periods (int):\n</span>
+<span class="sd">                A networkx graph.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># create primary point cloud with lattice structure</span>
+        <span class="c1"># creating voronoi cells, with defined ridge structure</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="n">init_crystal</span><span class="o">.</span><span class="n">NetworkxSimple</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">unit_cell</span> <span class="o">=</span> <span class="n">ic</span><span class="o">.</span><span class="n">simple_unit_cell</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">periodic_cell_structure</span><span class="p">(</span><span class="n">unit_cell</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">())]</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">Voronoi</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+
+        <span class="c1"># construct caged networks from given point clouds, with corresponding</span>
+        <span class="c1"># adjacency list of edges</span>
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_graph_nuclei</span><span class="p">(</span><span class="n">V</span><span class="p">)</span>
+
+        <span class="n">adj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_graph_adjacency</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">)</span>
+
+        <span class="c1"># cut off redundant (non-connected or neigborless) points/edges</span>
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prune_leaves</span><span class="p">(</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">adj</span><span class="p">)</span>
+
+        <span class="c1"># relabeling network nodes/edges &amp; adjacency-list</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relabel_networkx</span><span class="p">(</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">adj</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="NetworkxDualSimple.init_graph_nuclei"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualSimple.init_graph_nuclei">[docs]</a>    <span class="k">def</span> <span class="nf">init_graph_nuclei</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate points for a cubic lattice and its dual via Voronois</span>
+<span class="sd">        tesselation and return dual graph representations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            Voronoi (scipy.spatial.Voronoi):\n</span>
+<span class="sd">                A Tesselation object.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            nx.Graph:\n</span>
+<span class="sd">                Inner networkx graph.</span>
+<span class="sd">            nx.Graph:\n</span>
+<span class="sd">                Outer networkx graph.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">list_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">points</span><span class="p">))</span>
+        <span class="n">list_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">vertices</span><span class="p">))</span>
+
+        <span class="n">counter_n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_v</span><span class="p">):</span>
+            <span class="n">H</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">counter_n</span><span class="p">)</span>
+            <span class="n">counter_n</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">counter_n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_p</span><span class="p">):</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">counter_n</span><span class="p">)</span>
+            <span class="n">counter_n</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">counter_e</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_p</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_p</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):]):</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">m</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">dist</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span><span class="p">:</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">j</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">counter_e</span><span class="p">)</span>
+                    <span class="n">counter_e</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span></div>
+
+<div class="viewcode-block" id="NetworkxDualSimple.set_graph_adjacency"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualSimple.set_graph_adjacency">[docs]</a>    <span class="k">def</span> <span class="nf">set_graph_adjacency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the affiliation list of two dual cubic lattices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            Voronoi (scipy.spatial.Voronoi):\n</span>
+<span class="sd">                A Voronoi-Tesselation object.</span>
+<span class="sd">            G (nx.Graph):\n</span>
+<span class="sd">                The inner networkx graph.</span>
+<span class="sd">            H (nx.Graph):\n</span>
+<span class="sd">                The outer networkx graph.</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            list:\n</span>
+<span class="sd">                The edge affiliation list of the dual cubic lattice.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rv_aux</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">rp_aux</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">adj</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">rv</span><span class="p">,</span> <span class="n">rp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">ridge_vertices</span><span class="p">,</span> <span class="n">V</span><span class="o">.</span><span class="n">ridge_points</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rv</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rv_aux</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rv</span><span class="p">)</span>
+                <span class="n">rp_aux</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rp</span><span class="p">)</span>
+
+        <span class="n">counter_e</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">rv</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rv_aux</span><span class="p">):</span>
+            <span class="n">E1</span> <span class="o">=</span> <span class="p">(</span><span class="n">rp_aux</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">rp_aux</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rv</span><span class="p">):</span>
+                <span class="n">e1</span> <span class="o">=</span> <span class="n">rv</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="n">j</span><span class="p">]</span>
+                <span class="n">e2</span> <span class="o">=</span> <span class="n">rv</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+                <span class="n">E2</span> <span class="o">=</span> <span class="p">(</span><span class="n">e1</span><span class="p">,</span> <span class="n">e2</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">H</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">E2</span><span class="p">):</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="c1"># &#39;slope&#39;: (V.vertices[e1], V.vertices[e2]),</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">counter_e</span>
+                    <span class="p">}</span>
+                    <span class="n">H</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">E2</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+                    <span class="n">counter_e</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">G</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">E1</span><span class="p">):</span>
+                    <span class="n">adj</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">E1</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">],</span> <span class="n">H</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">E2</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]])</span>
+
+        <span class="k">return</span> <span class="n">adj</span></div></div>
+
+
+<div class="viewcode-block" id="NetworkxDualDiamond"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualDiamond">[docs]</a><span class="k">class</span> <span class="nc">NetworkxDualDiamond</span><span class="p">(</span><span class="n">NetworkxDual</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for spatial, dual diamond circuits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">        layer (list):\n</span>
+<span class="sd">            List of the mutlilayered circuits.</span>
+<span class="sd">        lattice_constant (float):\n</span>
+<span class="sd">            Scale for the spacing between the networks.</span>
+<span class="sd">        translation_length (float):\n</span>
+<span class="sd">            Scale for the translation difference between the multiple networks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A constructor for multilayer circuit diamond objects, setting default</span>
+<span class="sd">        values for the interal graph objects and geometry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">NetworkxDualDiamond</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">translation_length</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dualDiamond</span><span class="p">(</span><span class="n">num_periods</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NetworkxDualDiamond.dualDiamond"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualDiamond.dualDiamond">[docs]</a>    <span class="k">def</span> <span class="nf">dualDiamond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set internal networks structure, dual diamond.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            num_periods (int):\n</span>
+<span class="sd">                Repetition number of the unit cells.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># create primary point cloud with lattice structure</span>
+        <span class="n">adj</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">ic</span> <span class="o">=</span> <span class="n">init_crystal</span><span class="o">.</span><span class="n">NetworkxDiamond</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">unit_cell</span> <span class="o">=</span> <span class="n">ic</span><span class="o">.</span><span class="n">diamond_unit_cell</span><span class="p">()</span>
+
+        <span class="n">pg</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">G_aux</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">periodic_cell_structure_offset</span><span class="p">(</span><span class="n">unit_cell</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">,</span> <span class="n">pg</span><span class="p">)</span>
+
+        <span class="n">hg</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">H_aux</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">periodic_cell_structure_offset</span><span class="p">(</span><span class="n">unit_cell</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">,</span> <span class="n">hg</span><span class="p">)</span>
+
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_graph_nuclei</span><span class="p">(</span><span class="n">G_aux</span><span class="p">,</span> <span class="n">H_aux</span><span class="p">)</span>
+
+        <span class="n">adj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_graph_adjacency</span><span class="p">(</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">)</span>
+
+        <span class="c1"># cut off redundant (non-connected or neigborless) points/edges</span>
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prune_leaves</span><span class="p">(</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">adj</span><span class="p">)</span>
+
+        <span class="c1"># relabeling network nodes/edges &amp; adjacency-list</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relabel_networkx</span><span class="p">(</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">adj</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="NetworkxDualDiamond.init_graph_nuclei"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualDiamond.init_graph_nuclei">[docs]</a>    <span class="k">def</span> <span class="nf">init_graph_nuclei</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G_aux</span><span class="p">,</span> <span class="n">H_aux</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate points for a diamond lattice and its dual via copy+translation</span>
+<span class="sd">         and return dual graph representations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            G_aux (nx.Graph):\n</span>
+<span class="sd">                Inner networkx graph.</span>
+<span class="sd">            H_aux (nx.Graph):\n</span>
+<span class="sd">                Outer networkx graph.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            nx.Graph:\n</span>
+<span class="sd">                Inner networkx graph.</span>
+<span class="sd">            nx.Graph:\n</span>
+<span class="sd">                Outer networkx graph.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_graph</span><span class="p">(</span><span class="n">G_aux</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_graph</span><span class="p">(</span><span class="n">H_aux</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span></div>
+
+<div class="viewcode-block" id="NetworkxDualDiamond.init_graph"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualDiamond.init_graph">[docs]</a>    <span class="k">def</span> <span class="nf">init_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G_aux</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate points for a diamond lattice return dual graph</span>
+<span class="sd">        representations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            G_aux (nx.Graph):\n</span>
+<span class="sd">                A networkx graph.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            nx.Graph:\n</span>
+<span class="sd">                A networkx graph.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">points_G</span> <span class="o">=</span> <span class="p">[</span><span class="n">G_aux</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">G_aux</span><span class="o">.</span><span class="n">nodes</span><span class="p">())]</span>
+        <span class="n">counter_e</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">counter_n</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">G_aux</span><span class="o">.</span><span class="n">nodes</span><span class="p">()):</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">G_aux</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">counter_n</span><span class="p">)</span>
+            <span class="n">counter_n</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">points_G</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">points_G</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):]):</span>
+
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">dist</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span><span class="p">:</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">j</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">counter_e</span><span class="p">)</span>
+                    <span class="n">counter_e</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">G</span></div></div>
+
+
+<div class="viewcode-block" id="NetworkxDualLaves"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualLaves">[docs]</a><span class="k">class</span> <span class="nc">NetworkxDualLaves</span><span class="p">(</span><span class="n">NetworkxDual</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for spatial, dual Laves circuits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">        layer (list):\n</span>
+<span class="sd">            List of the mutlilayered circuits.</span>
+<span class="sd">        lattice_constant (float):\n</span>
+<span class="sd">            Scale for the spacing between the networks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A constructor for multilayer circuit laves objects, setting default</span>
+<span class="sd">        values for the interal graph objects and geometry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">NetworkxDualLaves</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span> <span class="o">=</span> <span class="mf">2.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dualLaves</span><span class="p">(</span><span class="n">num_periods</span><span class="p">)</span>
+
+    <span class="c1"># test new minimal surface graph_sets</span>
+
+<div class="viewcode-block" id="NetworkxDualLaves.dualLaves"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualLaves.dualLaves">[docs]</a>    <span class="k">def</span> <span class="nf">dualLaves</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set internal networks structure, dual diamond.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            num_periods (int):\n</span>
+<span class="sd">                A networkx graph.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">G_aux</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">laves_graph</span><span class="p">(</span><span class="n">num_periods</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+        <span class="n">H_aux</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">laves_graph</span><span class="p">(</span><span class="n">num_periods</span><span class="p">,</span> <span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
+
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_graph_nuclei</span><span class="p">(</span><span class="n">G_aux</span><span class="p">,</span> <span class="n">H_aux</span><span class="p">)</span>
+
+        <span class="n">adj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_graph_adjacency</span><span class="p">(</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">)</span>
+
+        <span class="c1"># cut off redundant (non-connected or neigborless) points/edges</span>
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prune_leaves</span><span class="p">(</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">adj</span><span class="p">)</span>
+
+        <span class="c1"># relabeling network nodes/edges &amp; adjacency-list</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relabel_networkx</span><span class="p">(</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">,</span> <span class="n">adj</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="NetworkxDualLaves.laves_graph"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualLaves.laves_graph">[docs]</a>    <span class="k">def</span> <span class="nf">laves_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">,</span> <span class="n">chirality</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate points for a Laves lattice and its dual via mirroring +</span>
+<span class="sd">        translation and return dual graph representations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            num_periods (int):\n</span>
+<span class="sd">                Repetition number of the unit cells..</span>
+<span class="sd">            chirality (string):\n</span>
+<span class="sd">                Chirality identifier for the current lattice generator.</span>
+<span class="sd">            offset (ndarray):\n</span>
+<span class="sd">                A translation vector.</span>
+
+
+<span class="sd">        Returns:</span>
+<span class="sd">            nx.Graph: A networkx graph</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">L</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">periods</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_periods</span><span class="p">)</span>
+
+        <span class="n">fundamental_points</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="n">chirality</span> <span class="o">==</span> <span class="s1">&#39;R&#39;</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">fundamental_points</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+
+                            <span class="n">pos_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                                <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="p">[</span><span class="mf">4.</span><span class="o">*</span><span class="n">i</span><span class="p">,</span> <span class="mf">4.</span><span class="o">*</span><span class="n">j</span><span class="p">,</span> <span class="mf">4.</span><span class="o">*</span><span class="n">k</span><span class="p">]),</span> <span class="n">offset</span>
+                                <span class="p">)</span>
+                            <span class="n">L</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">pos_n</span><span class="p">),</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos_n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chirality</span> <span class="o">==</span> <span class="s1">&#39;L&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">fundamental_points</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">periods</span><span class="p">:</span>
+
+                            <span class="n">pos_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                                <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                                    <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]),</span>
+                                    <span class="p">[</span><span class="mf">4.</span><span class="o">*</span><span class="n">i</span><span class="p">,</span> <span class="mf">4.</span><span class="o">*</span><span class="n">j</span><span class="p">,</span> <span class="mf">4.</span><span class="o">*</span><span class="n">k</span><span class="p">]</span>
+                                <span class="p">),</span>
+                                <span class="n">offset</span>
+                                <span class="p">)</span>
+                            <span class="n">L</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">pos_n</span><span class="p">),</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos_n</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">L</span></div>
+
+<div class="viewcode-block" id="NetworkxDualLaves.init_graph_nuclei"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualLaves.init_graph_nuclei">[docs]</a>    <span class="k">def</span> <span class="nf">init_graph_nuclei</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G_aux</span><span class="p">,</span> <span class="n">H_aux</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate points for a Laves lattice and its dual via mirroring +</span>
+<span class="sd">        translation and return dual graph representations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            G_aux (nx.Graph):\n</span>
+<span class="sd">                Inner networkx graph.</span>
+<span class="sd">            H_aux (nx.Graph):\n</span>
+<span class="sd">                Outer networkx graph.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            nx.Graph: A networkx graph</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_graph</span><span class="p">(</span><span class="n">G_aux</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_graph</span><span class="p">(</span><span class="n">H_aux</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span></div>
+
+<div class="viewcode-block" id="NetworkxDualLaves.init_graph"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualLaves.init_graph">[docs]</a>    <span class="k">def</span> <span class="nf">init_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G_aux</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Built labeled, attributed graphs from raw point sets.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            G_aux (nx.Graph):\n</span>
+<span class="sd">                Inner networkx graph holding unlabeled data.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            nx.Graph: A networkx graph</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">list_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">G_aux</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+
+        <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">counter_e</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">counter_n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">G_aux</span><span class="o">.</span><span class="n">nodes</span><span class="p">()):</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">G_aux</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">counter_n</span><span class="p">)</span>
+            <span class="n">counter_n</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_nodes</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">list_nodes</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):]):</span>
+
+                <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">dist</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span><span class="p">:</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="c1"># &#39;slope&#39;: (G_aux.nodes[n][&#39;pos&#39;],</span>
+                        <span class="c1"># G_aux.nodes[m][&#39;pos&#39;]),</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">counter_e</span>
+                    <span class="p">}</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+                    <span class="n">counter_e</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">G</span></div></div>
+
+
+<div class="viewcode-block" id="NetworkxDualCatenation"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualCatenation">[docs]</a><span class="k">class</span> <span class="nc">NetworkxDualCatenation</span><span class="p">(</span><span class="n">NetworkxDual</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for spatial, dual Laves circuits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">        layer (list):\n</span>
+<span class="sd">            List of the mutlilayered circuits.</span>
+<span class="sd">        lattice_constant (float):\n</span>
+<span class="sd">            Scale for the spacing between the networks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A constructor for multilayer circuit catenation objects, setting</span>
+<span class="sd">        default values for the interal graph objects and geometry.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">NetworkxDualCatenation</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">translation_length</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dual_ladder</span><span class="p">(</span><span class="n">num_periods</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NetworkxDualCatenation.dual_ladder"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualCatenation.dual_ladder">[docs]</a>    <span class="k">def</span> <span class="nf">dual_ladder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set internal networkx structure, dual ladder.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            num_periods (int):\n</span>
+<span class="sd">                Repetition number of the unit tile.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">np1</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_periods</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">np2</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_periods</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">N</span> <span class="o">=</span> <span class="p">[</span><span class="n">np1</span><span class="p">,</span> <span class="n">np2</span><span class="p">]</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="n">init_crystal</span><span class="o">.</span><span class="n">NetworkxSquare</span>
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span> <span class="o">=</span> <span class="p">[</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="n">ic</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">G</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">N</span><span class="p">]</span>
+
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.</span>
+        <span class="n">rot_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)),</span>
+                    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+                <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G1</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">G1</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">])</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rot_mat</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span> <span class="n">p1</span><span class="p">)</span>
+
+            <span class="n">G1</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span><span class="o">*</span><span class="n">p2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="NetworkxDualCrossMesh"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualCrossMesh">[docs]</a><span class="k">class</span> <span class="nc">NetworkxDualCrossMesh</span><span class="p">(</span><span class="n">NetworkxDual</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for spatial, dual Laves circuits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">        layer (list):\n</span>
+<span class="sd">            List of the mutlilayered circuits.</span>
+<span class="sd">        lattice_constant (float):\n</span>
+<span class="sd">            Scale for the spacing between the networks.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A constructor for multilayer circuit catenation objects, setting</span>
+<span class="sd">        default values for the interal graph objects and geometry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">NetworkxDualCrossMesh</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">translation_length</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dualCrossMesh</span><span class="p">(</span><span class="n">num_periods</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NetworkxDualCrossMesh.dualCrossMesh"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.init_dual.NetworkxDualCrossMesh.dualCrossMesh">[docs]</a>    <span class="k">def</span> <span class="nf">dualCrossMesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_periods</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set internal networkx structure, dual crossed_mesh.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            num_periods (int):\n</span>
+<span class="sd">                Repetition number of the unit tile.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_periods1X</span><span class="p">,</span> <span class="n">num_periods1Y</span><span class="p">,</span> <span class="n">num_periods2X</span><span class="p">,</span> <span class="n">num_periods2Y</span> <span class="o">=</span> <span class="n">n_periods</span>
+
+        <span class="n">np1</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_periods1X</span><span class="p">,</span> <span class="n">num_periods1Y</span><span class="p">]</span>
+        <span class="n">np2</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_periods2X</span><span class="p">,</span> <span class="n">num_periods2Y</span><span class="p">]</span>
+
+        <span class="n">N</span> <span class="o">=</span> <span class="p">[</span><span class="n">np1</span><span class="p">,</span> <span class="n">np2</span><span class="p">]</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="n">init_crystal</span><span class="o">.</span><span class="n">NetworkxSquare</span>
+        <span class="n">G1</span><span class="p">,</span> <span class="n">G2</span> <span class="o">=</span> <span class="p">[</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="n">ic</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">G</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">N</span><span class="p">]</span>
+
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.</span>
+        <span class="n">rot_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)),</span>
+                <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">G1</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">G1</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">])</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rot_mat</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span> <span class="n">p1</span><span class="p">)</span>
+
+            <span class="n">G1</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lattice_constant</span><span class="o">*</span><span class="n">p2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="p">[</span><span class="n">G1</span><span class="p">,</span> <span class="n">G2</span><span class="p">]</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.init_dual</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Felix Kramer.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>
