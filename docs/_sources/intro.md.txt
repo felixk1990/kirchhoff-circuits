@@ -47,9 +47,13 @@ K.set_plexus_landscape()
 fig=K.plot_circuit()
 fig.show()
 ```
-![hex](./gallery/hexagonal.png)
+<iframe src="https://felixk1990.github.io/kirchhoff-circuits/hex.html" title="hex" width="100%" height="600" style="border:none;"></iframe><br>
+<iframe src="https://felixk1990.github.io/kirchhoff-circuits/random3D.html" title="random3D" width="100%" height="600" style="border:none;"></iframe><br>
+<iframe src="https://felixk1990.github.io/kirchhoff-circuits/Laves.html" title="Laves" width="100%" height="600" style="border:none;"></iframe><br>
+<iframe src="https://felixk1990.github.io/kirchhoff-circuits/dualLaves.html" title="dualLaves" width="100%" height="600" style="border:none;"></iframe><br>
 ./notebook contains examples to play with in the form of jupyter notebooks
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/felixk1990/kirchhoff-circuits/HEAD)
+
 ##  Requirements
 ```
 networkx==2.5
@@ -58,9 +62,5 @@ pandas==1.1.1
 plotly==5.3.1
 scipy==1.5.2
 ```
-## Gallery
-![simple](./gallery/simplecubic3d.png)
-![dual](./gallery/duallaves.png)
-![voronoi](./gallery/voronoi3d.png)
 ## Acknowledgement
 ```kirchhoff``` written by Felix Kramer
