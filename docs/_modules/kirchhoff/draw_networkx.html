@@ -1,0 +1,737 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kirchhoff.draw_networkx &#8212; kirchhoff-circuits  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.draw_networkx</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kirchhoff.draw_networkx</h1><div class="highlight"><pre>
+<span></span><span class="c1"># @Author: Felix Kramer &lt;kramer&gt;</span>
+<span class="c1"># @Date:   07-11-2021</span>
+<span class="c1"># @Email:  felixuwekramer@proton.me</span>
+<span class="c1"># @Last modified by:   kramer</span>
+<span class="c1"># @Last modified time: 08-07-2022</span>
+
+
+<span class="c1"># standard types</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">plotly</span>
+<span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+
+
+<span class="c1"># generate interactive plots with plotly and return the respective figures</span>
+<div class="viewcode-block" id="plot_networkx"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.plot_networkx">[docs]</a><span class="k">def</span> <span class="nf">plot_networkx</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return an interactive network plot, which shows the internal edge and node</span>
+<span class="sd">     data via hover and text.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_graph (nx.Graph):\n</span>
+<span class="sd">            A networkx graph.</span>
+<span class="sd">        kwargs (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Figure: A plotly figure object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;network_id&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;color_nodes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;#a845b5&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;color_edges&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;#c762d4&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;colormap&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;plasma&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;markersize&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s1">&#39;linewidth&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span>
+        <span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">}</span>
+
+    <span class="n">node_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="n">edge_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">if</span> <span class="s1">&#39;node_data&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">sk</span><span class="p">,</span> <span class="n">sv</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;node_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">node_data</span><span class="p">[</span><span class="n">sk</span><span class="p">]</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;edge_data&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">sk</span><span class="p">,</span> <span class="n">sv</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;edge_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">edge_data</span><span class="p">[</span><span class="n">sk</span><span class="p">]</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+    <span class="n">add_traces_nodes</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">input_graph</span><span class="p">,</span> <span class="n">node_data</span><span class="p">)</span>
+    <span class="n">add_traces_edges</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">input_graph</span><span class="p">,</span> <span class="n">edge_data</span><span class="p">)</span>
+
+    <span class="n">update_layout</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<div class="viewcode-block" id="plot_networkx_dual"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.plot_networkx_dual">[docs]</a><span class="k">def</span> <span class="nf">plot_networkx_dual</span><span class="p">(</span><span class="n">dual_circuit</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return an interactive network plot, which shows the internal edge and node</span>
+<span class="sd">     data via hover and text for a multilayer system.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dual_circuit (dual_circuit):\n</span>
+<span class="sd">            A dual_circuit object.</span>
+<span class="sd">        args (list):\n</span>
+<span class="sd">            A list for keywoprd data for display.</span>
+<span class="sd">        kwargs (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Figure: A plotly figure object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;network_id&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;color_nodes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;#6aa84f&#39;</span><span class="p">,</span> <span class="s1">&#39;#a845b5&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;color_edges&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;#2BDF94&#39;</span><span class="p">,</span> <span class="s1">&#39;#c762d4&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;colormap&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;plasma&#39;</span><span class="p">,</span> <span class="s1">&#39;plasma&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;markersize&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+        <span class="s1">&#39;linewidth&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+        <span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">K</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dual_circuit</span><span class="o">.</span><span class="n">layer</span><span class="p">):</span>
+
+        <span class="n">options</span><span class="p">[</span><span class="s1">&#39;network_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">node_data</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">get_nodes_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">edges_data</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">get_edges_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="n">add_traces_nodes</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">K</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="n">node_data</span><span class="p">)</span>
+        <span class="n">add_traces_edges</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">K</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="n">edges_data</span><span class="p">)</span>
+
+    <span class="n">update_layout_dual</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+<span class="k">def</span> <span class="nf">update_layout</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="n">new_layout</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;showlegend&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;autosize&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;l&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+        <span class="s1">&#39;scene&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">aspectmode</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,)</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;axis&#39;</span><span class="p">]:</span>
+        <span class="n">new_layout</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">plot_bgcolor</span><span class="o">=</span><span class="s2">&quot;#FFF&quot;</span><span class="p">,</span>  <span class="c1"># Sets background color to white</span>
+                <span class="n">xaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">linecolor</span><span class="o">=</span><span class="s2">&quot;#BCCCDC&quot;</span><span class="p">,</span>  <span class="c1"># Sets color of X-axis line</span>
+                    <span class="n">showgrid</span><span class="o">=</span><span class="kc">False</span>  <span class="c1"># Removes X-axis grid lines</span>
+                <span class="p">),</span>
+                <span class="n">yaxis</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">linecolor</span><span class="o">=</span><span class="s2">&quot;#BCCCDC&quot;</span><span class="p">,</span>  <span class="c1"># Sets color of Y-axis line</span>
+                    <span class="n">showgrid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># Removes Y-axis grid lines</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="o">**</span><span class="n">new_layout</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">update_layout_dual</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="n">new_layout</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;showlegend&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;autosize&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;margin&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;l&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+        <span class="s1">&#39;scene_camera&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">eye</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)),</span>
+        <span class="s1">&#39;scene&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">aspectmode</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="n">axisFormat</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">showbackground</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">showticklabels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">autorange</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">showgrid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;axis&#39;</span><span class="p">]:</span>
+        <span class="n">new_layout</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;scene&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">xaxis_title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                    <span class="n">yaxis_title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                    <span class="n">zaxis_title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                    <span class="n">xaxis</span><span class="o">=</span><span class="n">axisFormat</span><span class="p">,</span>
+                    <span class="n">yaxis</span><span class="o">=</span><span class="n">axisFormat</span><span class="p">,</span>
+                    <span class="n">zaxis</span><span class="o">=</span><span class="n">axisFormat</span><span class="p">,</span>
+                    <span class="n">aspectmode</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="o">**</span><span class="n">new_layout</span><span class="p">)</span>
+
+
+<span class="c1"># integrate traces into the figure</span>
+<div class="viewcode-block" id="add_traces_edges"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.add_traces_edges">[docs]</a><span class="k">def</span> <span class="nf">add_traces_edges</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">input_graph</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add line traces for interactive edge data display.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fig (plotly.graph_objects.Figure:\n</span>
+<span class="sd">            A plotly figure object</span>
+<span class="sd">        options (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+<span class="sd">        input_graph (nx.Graph):\n</span>
+<span class="sd">            A networkx graph.</span>
+<span class="sd">        extra_data (pandas.DataFrame):\n</span>
+<span class="sd">            A dataframe holding the data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;network_id&#39;</span><span class="p">]</span>
+
+    <span class="n">optM</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;color_edges&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">],</span>
+        <span class="s1">&#39;colormap&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;colormap&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+    <span class="p">}</span>
+    <span class="n">edge_mid_trace</span> <span class="o">=</span> <span class="n">get_edge_mid_trace</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">,</span> <span class="o">**</span><span class="n">optM</span><span class="p">)</span>
+
+    <span class="n">optI</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;color_edges&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">],</span>
+        <span class="s1">&#39;linewidth&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;linewidth&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">],</span>
+        <span class="s1">&#39;colormap&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;colormap&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">edge_invd_traces</span> <span class="o">=</span> <span class="n">get_edge_invd_traces</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">,</span> <span class="o">**</span><span class="n">optI</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">eit</span> <span class="ow">in</span> <span class="n">edge_invd_traces</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">eit</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">edge_mid_trace</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_traces_nodes"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.add_traces_nodes">[docs]</a><span class="k">def</span> <span class="nf">add_traces_nodes</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span>  <span class="n">options</span><span class="p">,</span>  <span class="n">input_graph</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add point traces for interactive node data display.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fig (plotly.graph_objects.Figure:\n</span>
+<span class="sd">            A plotly figure object</span>
+<span class="sd">        options (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+<span class="sd">        input_graph (nx.Graph):\n</span>
+<span class="sd">            A networkx graph.</span>
+<span class="sd">        extra_data (pandas.DataFrame):\n</span>
+<span class="sd">            A dataframe holding the data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;network_id&#39;</span><span class="p">]</span>
+    <span class="n">optN</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;color_nodes&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">],</span>
+        <span class="s1">&#39;markersize&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;markersize&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">],</span>
+        <span class="s1">&#39;colormap&#39;</span><span class="p">:</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;colormap&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">node_trace</span> <span class="o">=</span> <span class="n">get_node_trace</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span>  <span class="n">extra_data</span><span class="p">,</span> <span class="o">**</span><span class="n">optN</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">node_trace</span><span class="p">)</span></div>
+
+
+<span class="c1"># auxillary functions generating traces for nodes and edges</span>
+<div class="viewcode-block" id="get_edge_mid_trace"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.get_edge_mid_trace">[docs]</a><span class="k">def</span> <span class="nf">get_edge_mid_trace</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return transparent line traces for interactive edge data display.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_graph (nx.Graph):\n</span>
+<span class="sd">            A networkx graph.</span>
+<span class="sd">        extra_data (pandas.DataFrame):\n</span>
+<span class="sd">            A dataframe holding the data.</span>
+<span class="sd">        kwargs (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Scatter: A plotly scatter object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#888&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;dim&#39;:3</span>
+    <span class="p">}</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="n">dim</span><span class="p">:</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">E</span> <span class="o">=</span> <span class="n">input_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
+    <span class="c1"># if &#39;edge_list&#39; in options:</span>
+    <span class="c1">#     E = options[&#39;edge_list&#39;]</span>
+
+    <span class="n">middle_node_trace</span> <span class="o">=</span> <span class="n">get_hover_scatter_from_template</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="n">XYZ</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
+
+        <span class="n">XYZ_0</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">XYZ_1</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">xi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">XYZ</span><span class="p">):</span>
+            <span class="n">xi</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">XYZ_0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">XYZ_1</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span><span class="p">)</span>
+
+    <span class="n">set_hover_info</span><span class="p">(</span><span class="n">middle_node_trace</span><span class="p">,</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">middle_node_trace</span></div>
+
+
+<div class="viewcode-block" id="set_hover_info"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.set_hover_info">[docs]</a><span class="k">def</span> <span class="nf">set_hover_info</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set hover info for figure traces.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        trace (plotly.graph_objects.trace): A networkx graph.</span>
+<span class="sd">        XYZ (ndarray): Nodal position data.</span>
+<span class="sd">        extra_data (pandas.DataFrame): A dataframe holding the data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">XYZ</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
+        <span class="n">trace</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">XYZ</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">extra_data</span><span class="p">[</span><span class="n">c</span><span class="p">])</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">extra_data</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="nb">iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_tag</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">extra_data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">]</span>
+        <span class="n">trace</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">text</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">trace</span><span class="p">[</span><span class="s1">&#39;hoverinfo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+
+    <span class="n">trace</span><span class="p">[</span><span class="s1">&#39;hoverlabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">bgcolor</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_hover_scatter_from_template"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.get_hover_scatter_from_template">[docs]</a><span class="k">def</span> <span class="nf">get_hover_scatter_from_template</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get scatter hover info for figure traces.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dim (int):\n</span>
+<span class="sd">            A dimensional identifier.</span>
+<span class="sd">        options (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Scatter: A plotly scatter object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">middle_node_trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">y</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">z</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">text</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
+            <span class="n">opacity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">)</span>
+            <span class="c1"># marker = dict(color = options[&#39;color&#39;])</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">middle_node_trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">y</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">text</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s1">&#39;text&#39;</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">scatter</span><span class="o">.</span><span class="n">Marker</span><span class="p">(</span>
+                <span class="n">opacity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">options</span>
+            <span class="p">)</span>
+
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">middle_node_trace</span></div>
+
+
+<div class="viewcode-block" id="get_edge_invd_traces"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.get_edge_invd_traces">[docs]</a><span class="k">def</span> <span class="nf">get_edge_invd_traces</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">,</span>  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return individual line traces for interactive edge data display.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_graph (nx.Graph):\n</span>
+<span class="sd">            A networkx graph.</span>
+<span class="sd">        extra_data (pandas.DataFrame):\n</span>
+<span class="sd">            A dataframe holding the data.</span>
+<span class="sd">        kwargs (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Scatter: A plotly scatter object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#888&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="c1"># &#39;dim&#39;:3</span>
+    <span class="p">}</span>
+    <span class="c1"># options[&#39;width&#39;] = kwargs[&#39;linewidth&#39;]</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="c1"># handle exceptions and new containers</span>
+    <span class="n">colorful</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">colorful</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">cmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">])</span>
+        <span class="c1"># cmin = np.min(options[&#39;color&#39;])</span>
+        <span class="k">if</span> <span class="n">cmax</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cmax</span> <span class="o">=</span> <span class="mf">1.</span>
+
+        <span class="n">pc</span> <span class="o">=</span> <span class="n">plotly</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">sample_colorscale</span><span class="p">(</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;colormap&#39;</span><span class="p">],</span>
+                <span class="n">options</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">cmax</span>
+                <span class="p">)</span>
+        <span class="n">options</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pc</span>
+
+    <span class="n">weighted</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="s1">&#39;linewidth&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">options</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;linewidth&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">weighted</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="n">dim</span><span class="p">:</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">E</span> <span class="o">=</span> <span class="n">input_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
+    <span class="c1"># if &#39;edge_list&#39; in options:</span>
+    <span class="c1">#     E = options[&#39;edge_list&#39;]</span>
+
+    <span class="c1"># add new traces</span>
+    <span class="n">trace_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">aux_option</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">colorful</span><span class="p">:</span>
+            <span class="n">aux_option</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">weighted</span><span class="p">:</span>
+            <span class="n">aux_option</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">get_line_from_template</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">aux_option</span><span class="p">)</span>
+        <span class="n">XYZ_0</span> <span class="o">=</span> <span class="n">input_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span>
+        <span class="n">XYZ_1</span> <span class="o">=</span> <span class="n">input_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span>
+
+        <span class="n">set_edge_info</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">XYZ_0</span><span class="p">,</span> <span class="n">XYZ_1</span><span class="p">)</span>
+        <span class="n">trace_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">trace_list</span></div>
+
+
+<div class="viewcode-block" id="set_edge_info"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.set_edge_info">[docs]</a><span class="k">def</span> <span class="nf">set_edge_info</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">XYZ_0</span><span class="p">,</span> <span class="n">XYZ_1</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set hover info for figure traces.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        trace (plotly.graph_objects.trace): A networkx graph.</span>
+<span class="sd">        XYZ_0 (ndarray): Nodal position data.</span>
+<span class="sd">        XYZ_0 (ndarray): Nodal position data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">XYZ_0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
+        <span class="n">trace</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">XYZ_0</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>  <span class="n">XYZ_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>  <span class="kc">None</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="get_line_from_template"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.get_line_from_template">[docs]</a><span class="k">def</span> <span class="nf">get_line_from_template</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a line trace element.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dim (int):\n</span>
+<span class="sd">            A dimensional identifier.</span>
+<span class="sd">        options (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Scatter: A plotly scatter object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">y</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">z</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span>
+            <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">),</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s1">&#39;none&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">y</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span>
+            <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">),</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="s1">&#39;none&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">trace</span></div>
+
+
+<div class="viewcode-block" id="get_node_trace"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.get_node_trace">[docs]</a><span class="k">def</span> <span class="nf">get_node_trace</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return nodal traces for interactive node data display.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_graph (nx.Graph):\n</span>
+<span class="sd">            A networkx graph.</span>
+<span class="sd">        extra_data (pandas.DataFrame):\n</span>
+<span class="sd">            A dataframe holding the data.</span>
+<span class="sd">        kwargs (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Scatter: A plotly scatter object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#888&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dim&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;markersize&#39;</span><span class="p">:</span> <span class="mi">2</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+
+            <span class="n">options</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="n">node_xyz</span> <span class="o">=</span> <span class="n">get_node_coords</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="n">node_trace</span> <span class="o">=</span> <span class="n">get_node_scatter</span><span class="p">(</span><span class="n">node_xyz</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">node_trace</span></div>
+
+
+<div class="viewcode-block" id="get_node_coords"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.get_node_coords">[docs]</a><span class="k">def</span> <span class="nf">get_node_coords</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return nodal coordinates in specified tuple format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_graph (nx.Graph):\n</span>
+<span class="sd">            A networkx graph.</span>
+<span class="sd">        options (dictionary):\n</span>
+<span class="sd">            A dictionary for circuit keywords for readout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: A list of nodal postions [X, Y, Z]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">]:</span>
+        <span class="n">options</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">node_xyz</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">])]</span>
+
+    <span class="n">N</span> <span class="o">=</span> <span class="n">input_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;node_list&#39;</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;edge_list&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">N</span><span class="p">:</span>
+
+        <span class="n">xyz_0</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">]):</span>
+
+            <span class="n">node_xyz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xyz_0</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">node_xyz</span></div>
+
+
+<div class="viewcode-block" id="get_node_scatter"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.get_node_scatter">[docs]</a><span class="k">def</span> <span class="nf">get_node_scatter</span><span class="p">(</span><span class="n">node_xyz</span><span class="p">,</span> <span class="n">extra_data</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return nodal traces for interactive node data display.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        node_xyz (list):\n</span>
+<span class="sd">            A list of nodal postions [X, Y, Z].</span>
+<span class="sd">        extra_data (pandas.DataFrame):\n</span>
+<span class="sd">            A dataframe holding the data.</span>
+<span class="sd">        options (dictionary):\n</span>
+<span class="sd">            A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        plotly.graph_objects.Scatter: A plotly scatter object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+    <span class="n">hover</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;text&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">extra_data</span><span class="p">[</span><span class="n">c</span><span class="p">])</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">extra_data</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="nb">iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">hover</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_tag</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">extra_data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="k">for</span> <span class="n">vals</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">node_trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter3d</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">node_xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">node_xyz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">z</span><span class="o">=</span><span class="n">node_xyz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+            <span class="n">hovertext</span><span class="o">=</span><span class="n">hover</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;markersize&#39;</span><span class="p">],</span>
+                <span class="n">line_width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">node_trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">node_xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">node_xyz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;markers&#39;</span><span class="p">,</span>
+            <span class="n">hoverinfo</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+            <span class="n">hovertext</span><span class="o">=</span><span class="n">hover</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">size</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;markersize&#39;</span><span class="p">],</span>
+                <span class="n">line_width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">node_trace</span></div>
+
+
+<div class="viewcode-block" id="create_tag"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.draw_networkx.create_tag">[docs]</a><span class="k">def</span> <span class="nf">create_tag</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a hover tag.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vals (list): A list of values.</span>
+<span class="sd">        columns (list):A list of keywords.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        string: A string in makrdown format.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">tag</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39;&lt;br&gt;&#39;</span>
+
+    <span class="k">return</span> <span class="n">tag</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.draw_networkx</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Felix Kramer.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

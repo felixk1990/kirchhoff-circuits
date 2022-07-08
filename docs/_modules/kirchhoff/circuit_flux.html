@@ -1,0 +1,547 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kirchhoff.circuit_flux &#8212; kirchhoff-circuits  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.circuit_flux</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kirchhoff.circuit_flux</h1><div class="highlight"><pre>
+<span></span><span class="c1"># @Author: Felix Kramer &lt;kramer&gt;</span>
+<span class="c1"># @Date:   07-11-2021</span>
+<span class="c1"># @Email:  felixuwekramer@proton.me</span>
+<span class="c1"># @Last modified by:   kramer</span>
+<span class="c1"># @Last modified time: 08-07-2022</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">kirchhoff.circuit_flow</span> <span class="kn">import</span> <span class="n">FlowCircuit</span>
+<span class="kn">import</span> <span class="nn">kirchhoff.init_crystal</span> <span class="k">as</span> <span class="nn">init_crystal</span>
+<span class="kn">import</span> <span class="nn">kirchhoff.init_random</span> <span class="k">as</span> <span class="nn">init_random</span>
+
+
+<div class="viewcode-block" id="initialize_flux_circuit_from_random"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.initialize_flux_circuit_from_random">[docs]</a><span class="k">def</span> <span class="nf">initialize_flux_circuit_from_random</span><span class="p">(</span>
+        <span class="n">random_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span>
+        <span class="n">periods</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">sidelength</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a flux circuit from a random, spatially embedded networkx graph.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        random_type (string):\n</span>
+<span class="sd">            The type of random lattice to be constructed(voronoi_planar,</span>
+<span class="sd">            voronoi_volume).</span>
+<span class="sd">        periods (int):\n</span>
+<span class="sd">            Number of random points.</span>
+<span class="sd">        sidelength (float):\n</span>
+<span class="sd">            The box size into which random points in space are generated.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        flux_circuit: A flux_circuit object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_graph</span> <span class="o">=</span> <span class="n">init_random</span><span class="o">.</span><span class="n">init_graph_from_random</span><span class="p">(</span>
+            <span class="n">random_type</span><span class="p">,</span>
+            <span class="n">periods</span><span class="p">,</span>
+            <span class="n">sidelength</span>
+            <span class="p">)</span>
+    <span class="n">kirchhoff_graph</span> <span class="o">=</span> <span class="n">FluxCircuit</span><span class="p">(</span><span class="n">input_graph</span><span class="p">)</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">set_info</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">random_type</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kirchhoff_graph</span></div>
+
+
+<div class="viewcode-block" id="initialize_flux_circuit_from_crystal"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.initialize_flux_circuit_from_crystal">[docs]</a><span class="k">def</span> <span class="nf">initialize_flux_circuit_from_crystal</span><span class="p">(</span><span class="n">crystal_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a flux circuit from a spatially embedded, crystal networkx</span>
+<span class="sd">    graph.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        crystal_type (string):\n</span>
+<span class="sd">            The type of crystal skeleton (default, simple, chain, bcc, fcc,</span>
+<span class="sd">            diamond, laves, square, hexagonal, trigonal_planar).</span>
+<span class="sd">        periods (int):\n</span>
+<span class="sd">            Repetition number of the lattice&#39;s unit cell.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        flux_circuit: A flux_circuit object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_graph</span> <span class="o">=</span> <span class="n">init_crystal</span><span class="o">.</span><span class="n">init_graph_from_crystal</span><span class="p">(</span><span class="n">crystal_type</span><span class="p">,</span> <span class="n">periods</span><span class="p">)</span>
+    <span class="n">kirchhoff_graph</span> <span class="o">=</span> <span class="n">FluxCircuit</span><span class="p">(</span><span class="n">input_graph</span><span class="p">)</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">set_info</span><span class="p">(</span><span class="n">input_graph</span><span class="p">,</span> <span class="n">crystal_type</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kirchhoff_graph</span></div>
+
+
+<div class="viewcode-block" id="setup_default_flux_circuit"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.setup_default_flux_circuit">[docs]</a><span class="k">def</span> <span class="nf">setup_default_flux_circuit</span><span class="p">(</span><span class="n">skeleton</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diffusion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">absorption</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a flux circuit from a given networkx graph.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        skeleton (nx.Graph):\n</span>
+<span class="sd">            A networkx graph.</span>
+<span class="sd">        diffusion (float):\n</span>
+<span class="sd">            Diffusion constant.</span>
+<span class="sd">        absorption (float):\n</span>
+<span class="sd">            Absorption rate.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        flux_circuit: A flow_circuit object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">kirchhoff_graph</span> <span class="o">=</span> <span class="n">FluxCircuit</span><span class="p">(</span><span class="n">skeleton</span><span class="p">)</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">set_source_landscape</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dipole_point&#39;</span><span class="p">)</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">set_plexus_landscape</span><span class="p">()</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">set_solute_landscape</span><span class="p">()</span>
+
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;diffusion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diffusion</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;absorption&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">absorption</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">set_absorption_landscape</span><span class="p">()</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">set_geom_landscape</span><span class="p">()</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;solute&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">sol</span> <span class="o">=</span> <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;solute&#39;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">kirchhoff_graph</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;sum_flux&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kirchhoff_graph</span></div>
+
+
+<div class="viewcode-block" id="FluxCircuit"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">FluxCircuit</span><span class="p">(</span><span class="n">FlowCircuit</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A derived class for flux circuits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">        solute_mode (dictionary):\n</span>
+<span class="sd">            A dictionary of custom solute outflux/influx boundaries.</span>
+<span class="sd">        absorption_mode (dictionary):\n</span>
+<span class="sd">            A dictionary of custom absorption rate initializations.</span>
+<span class="sd">        geom_mode (dictionary):\n</span>
+<span class="sd">            A dictionary of custom plexus geometrical initializations.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_circuit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_flowModes</span><span class="p">()</span>
+
+        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
+
+        <span class="n">newNodeAttr</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;solute&#39;</span><span class="p">,</span> <span class="s1">&#39;concentration&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">newNodeAttr</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="n">newEdgeAttr</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;peclet&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;absorption&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;length&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;radius&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;radius_sq&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;uptake&#39;</span>
+            <span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">newEdgeAttr</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="n">newScaleAttr</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">,</span> <span class="s1">&#39;sum_flux&#39;</span><span class="p">,</span> <span class="s1">&#39;diffusion&#39;</span><span class="p">,</span> <span class="s1">&#39;absorption&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">newScaleAttr</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+        <span class="n">newGraphAttr</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;solute_mode&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;absorption_mode&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;geom_mode&#39;</span>
+            <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">newGraphAttr</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">solute_mode</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_solute_default</span><span class="p">,</span>
+            <span class="s1">&#39;custom&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_solute_custom</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">absorption_mode</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_absorption_default</span><span class="p">,</span>
+            <span class="s1">&#39;random&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_absorption_random</span><span class="p">,</span>
+            <span class="s1">&#39;custom&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_absorption_custom</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">geom_mode</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_geom_default</span><span class="p">,</span>
+            <span class="s1">&#39;random&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_geom_random</span><span class="p">,</span>
+            <span class="s1">&#39;custom&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_geom_custom</span>
+        <span class="p">}</span>
+
+    <span class="c1"># set injection and outlet of metabolites</span>
+<div class="viewcode-block" id="FluxCircuit.set_solute_landscape"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.set_solute_landscape">[docs]</a>    <span class="k">def</span> <span class="nf">set_solute_landscape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the internal bounday state of sinks and sources.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mode (string):\n</span>
+<span class="sd">                The specific solute mode.</span>
+<span class="sd">            kwargs (dictonary):\n</span>
+<span class="sd">                Solute attribute specifiers, optional.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># optional keywords</span>
+        <span class="k">if</span> <span class="s1">&#39;solute&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">custom</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;solute&#39;</span><span class="p">]</span>
+
+        <span class="c1"># call init sources</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solute_mode</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">solute_mode</span><span class="p">[</span><span class="n">mode</span><span class="p">]()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="s1">&#39;Whooops, Error: Define Input/output-flows for the network.&#39;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;solute_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.init_solute_default"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.init_solute_default">[docs]</a>    <span class="k">def</span> <span class="nf">init_solute_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set solute out/influx accordingly to the sinks-sources boundaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_graph_nodes</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_solute</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_solute</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_solute</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">vals</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.init_solute_custom"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.init_solute_custom">[docs]</a>    <span class="k">def</span> <span class="nf">init_solute_custom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set custom solute out/influx boundaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">custom</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_graph_nodes</span><span class="p">):</span>
+
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_graph_nodes</span><span class="p">):</span>
+
+                <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom</span><span class="p">[</span><span class="n">node</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="s1">&#39;solute&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;solute&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;Warning, custom solute values ill defined, setting default!&#39;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_solute_default</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.set_solute"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.set_solute">[docs]</a>    <span class="k">def</span> <span class="nf">set_solute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">vals</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set nodal solute in/outflux attributes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            idx (int): The dataframe vertex indicator.</span>
+<span class="sd">            nodes (int): The corresponding networkx graph node.</span>
+<span class="sd">            vals (float): Solute value to be set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">vals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;solute&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">nodes</span><span class="p">][</span><span class="s1">&#39;solute&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span></div>
+
+    <span class="c1"># set spatial pattern of solute absorption rate</span>
+<div class="viewcode-block" id="FluxCircuit.set_absorption_landscape"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.set_absorption_landscape">[docs]</a>    <span class="k">def</span> <span class="nf">set_absorption_landscape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the internal bounday state of sinks and sources.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mode (string):\n</span>
+<span class="sd">                The specific absorption mode.</span>
+<span class="sd">            kwargs (dictonary):\n</span>
+<span class="sd">                Absorption attribute specifiers, optional.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># optional keywords</span>
+        <span class="k">if</span> <span class="s1">&#39;absorption&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">custom</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;absorption&#39;</span><span class="p">]</span>
+
+        <span class="c1"># call init sources</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">absorption_mode</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">absorption_mode</span><span class="p">[</span><span class="n">mode</span><span class="p">]()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                Whooops, Error: Define absorption rate pattern for the network.</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;absorption_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.init_absorption_default"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.init_absorption_default">[docs]</a>    <span class="k">def</span> <span class="nf">init_absorption_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a constant absorption rate landscape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">num_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;absorption&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_e</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;absorption&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.init_absorption_random"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.init_absorption_random">[docs]</a>    <span class="k">def</span> <span class="nf">init_absorption_random</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a random absorption rate landscape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">num_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+        <span class="n">rnd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_e</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;absorption&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;absorption&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.init_absorption_custom"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.init_absorption_custom">[docs]</a>    <span class="k">def</span> <span class="nf">init_absorption_custom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a custom absorption rate landscape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">custom</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_graph_edges</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_graph_edges</span><span class="p">):</span>
+
+                <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;absorption&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;absorption&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                Warning, custom absorption values ill defined, setting default!</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_absorption_default</span><span class="p">()</span></div>
+
+    <span class="c1"># set spatial pattern of length and radii</span>
+<div class="viewcode-block" id="FluxCircuit.set_geom_landscape"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.set_geom_landscape">[docs]</a>    <span class="k">def</span> <span class="nf">set_geom_landscape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the internal bounday state of sinks and sources.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mode (string):\n</span>
+<span class="sd">                The specific geometric initialization mode.</span>
+<span class="sd">            kwargs (dictonary):\n</span>
+<span class="sd">                Geometric initialization specifiers, optional.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># optional keywords</span>
+        <span class="k">if</span> <span class="s1">&#39;geom&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">custom</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;geom&#39;</span><span class="p">]</span>
+
+        <span class="c1"># call init sources</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geom_mode</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">geom_mode</span><span class="p">[</span><span class="n">mode</span><span class="p">]()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="s1">&#39;Whooops, Error: Define micro geometrics for the network.&#39;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;geom_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mode</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.init_geom_default"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.init_geom_default">[docs]</a>    <span class="k">def</span> <span class="nf">init_geom_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a constant length for all connections.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">num_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_e</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">]</span>
+        <span class="n">conductivity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;conductivity&#39;</span><span class="p">]</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;conductance&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;radius&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">conductivity</span><span class="o">/</span><span class="n">k</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;radius_sq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">conductivity</span><span class="o">/</span><span class="n">k</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.init_geom_random"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.init_geom_random">[docs]</a>    <span class="k">def</span> <span class="nf">init_geom_random</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a random length for all connections.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">num_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">num_e</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.init_geom_custom"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.init_geom_custom">[docs]</a>    <span class="k">def</span> <span class="nf">init_geom_custom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flux</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set a custom length for all connections.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">custom</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_graph_edges</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_graph_edges</span><span class="p">):</span>
+
+                <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">custom</span><span class="p">[</span><span class="n">edge</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">                Warning, custom absorption values ill defined, setting default!</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_geom_default</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.get_nodes_data"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.get_nodes_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_nodes_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get internal nodal DataFrame columns by keywords.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            args (list):\n</span>
+<span class="sd">                A list of keywords to check for in the internal DataFrames.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: A cliced DataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception: description</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">dn</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;solute&#39;</span><span class="p">,</span> <span class="s1">&#39;concentration&#39;</span><span class="p">]])</span>
+
+        <span class="k">return</span> <span class="n">dn</span></div>
+
+<div class="viewcode-block" id="FluxCircuit.get_edges_data"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_flux.FluxCircuit.get_edges_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_edges_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get internal nodal DataFrame columns by keywords.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            args (list):\n</span>
+<span class="sd">                A list of keywords to check for in the internal DataFrames.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: A cliced DataFrame.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception: description</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">de</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span>
+                <span class="p">[</span>
+                    <span class="s1">&#39;conductivity&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;flow_rate&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;absorption&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;uptake&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;peclet&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;length&#39;</span>
+                    <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;width&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())</span>
+            <span class="n">de</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">draw_weight_scaling</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;conductivity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="mf">0.25</span><span class="p">)</span>
+            <span class="n">de</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">draw_weight_scaling</span>
+
+        <span class="k">return</span> <span class="n">de</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.circuit_flux</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Felix Kramer.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

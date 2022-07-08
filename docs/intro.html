@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Introduction &#8212; kirchhoff-circuits  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="kirchhoff modules" href="kirchhoff.html" />
+    <link rel="prev" title="Welcome to kirchhoff-circuits’s documentation!" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kirchhoff.html" title="kirchhoff modules"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to kirchhoff-circuits’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Introduction</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <p>About goflow:</p>
+<section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>This module ‘kirchhoff’ is part of a series of pyton packages encompassing a set of class and method implementations for a kirchhoff network datatype, which includes a visualization routine based on plotly. The concept is to build kirchhoff networks from networkx graphs, by providing a container for the graphs as well as separate containers for network attributes meant for fast(er) computation in the follow-up modules ‘hailhydro’ and ‘goflow’</p>
+</section>
+<section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>pip install kirchhoff</p>
+</section>
+<section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<p>Generally, just take a weighted networkx graph and read it in as shown. You can plot the network interactivly, with full display of edge and node attributes if desired. Default attributes are ‘source’/’potential’ for nodes and ‘conductivity’/’flow_rate’ for edges.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">kirchhoff.circuit_init</span> <span class="k">as</span> <span class="nn">ki</span>
+<span class="n">n</span><span class="o">=</span><span class="mi">3</span>
+<span class="n">G</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">grid_graph</span><span class="p">((</span> <span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">K</span> <span class="o">=</span> <span class="n">ki</span><span class="o">.</span><span class="n">initialize_circuit_from_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">kirchhoff.circuit_dual</span> <span class="k">as</span> <span class="nn">kid</span>
+<span class="n">kid</span><span class="o">.</span><span class="n">initialize_dual_flux_circuit_from_minsurf</span><span class="p">(</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Single and dual networks are supported at the moment, and can be constructed from networkx generator or custom pre-defined types of spatially embedded graphs such as</p>
+<ul class="simple">
+<li><p>crystals/periodic, initialize_circuit_from_crystal(crystal_type=’default’,periods=1): ‘default’: simple cubic lattice 3D, ‘chain’: 1D chain, ‘bcc’: bcc lattice 3D,  ‘fcc’: fcc lattice 3D,’diamond’: diamond lattice 3D,’laves’: laves lattice 3D,’trigonal_stack’: trigonal lattice stacked and interconnected 3D, ‘square’: simple cubic lattice 2D, ‘hexagonal’: hexagonal lattice 2D,’trigonal_planar’: trigonal lattice 2D</p></li>
+<li><p>random voronoi tesselation, initialize_circuit_from_random(random_type=’default’,periods=10,sidelength=1):  ‘default’: planar voronoi tesselation with periodic boundaries,  ‘voronoi_volume’: 3D voronoi tesselation with periodic boundaries</p></li>
+<li><p>intertwined systems, initialize_dual_circuit_from_minsurf(dual_type=’simple’,num_periods=2): supporting most of the above in 3D</p></li>
+</ul>
+<p>Further one can define ‘flow’ and ‘flux’ circuits for hydrodynamic simulations which are based on Hagen-Poiseuille flow and transport of solutes via advection-diffusion. Doing so will enable more specifically tailored methods for source/solute influx topology control:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">kirchhoff.circuit_flow</span> <span class="k">as</span> <span class="nn">kfc</span>
+<span class="n">kfc</span><span class="o">.</span><span class="n">initialize_circuit_from_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="n">kfc</span><span class="o">.</span><span class="n">initialize_flow_circuit_from_crystal</span><span class="p">(</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">kfc</span><span class="o">.</span><span class="n">initialize_flow_circuit_from_random</span><span class="p">(</span><span class="n">random_type</span><span class="o">=</span><span class="s1">&#39;voronoi_volume&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">kirchhoff.circuit_flux</span> <span class="k">as</span> <span class="nn">kfx</span>
+<span class="n">kfx</span><span class="o">.</span><span class="n">initialize_circuit_from_networkx</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="n">kfx</span><span class="o">.</span><span class="n">initialize_flux_circuit_from_crystal</span><span class="p">(</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">kfx</span><span class="o">.</span><span class="n">initialize_flux_circuit_from_random</span><span class="p">(</span><span class="n">random_type</span><span class="o">=</span><span class="s1">&#39;voronoi_volume&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To set node and edge attributes (’source’,’potential’ ,’conductivity’,’flow_rate’) use the set_source_landscape(), set_plexus_landscape() methods of the kirchhoff class and use the class method plot_circuit for plotly output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">kirchhoff.circuit_flow</span> <span class="k">as</span> <span class="nn">kfc</span>
+
+<span class="n">K</span><span class="o">=</span><span class="n">kfc</span><span class="o">.</span><span class="n">initialize_flow_circuit_from_crystal</span><span class="p">(</span><span class="s1">&#39;hexagonal&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">K</span><span class="o">.</span><span class="n">set_source_landscape</span><span class="p">()</span>
+<span class="n">K</span><span class="o">.</span><span class="n">set_plexus_landscape</span><span class="p">()</span>
+
+<span class="n">fig</span><span class="o">=</span><span class="n">K</span><span class="o">.</span><span class="n">plot_circuit</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="hex" src="gallery/hexagonal.png" />
+./notebook contains examples to play with in the form of jupyter notebooks
+<a class="reference external" href="https://mybinder.org/v2/gh/felixk1990/kirchhoff-circuits/HEAD"><img alt="Binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
+</section>
+<section id="requirements">
+<h1>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">networkx</span><span class="o">==</span><span class="mf">2.5</span>
+<span class="n">numpy</span><span class="o">==</span><span class="mf">1.19.1</span>
+<span class="n">pandas</span><span class="o">==</span><span class="mf">1.1.1</span>
+<span class="n">plotly</span><span class="o">==</span><span class="mf">5.3.1</span>
+<span class="n">scipy</span><span class="o">==</span><span class="mf">1.5.2</span>
+</pre></div>
+</div>
+</section>
+<section id="gallery">
+<h1>Gallery<a class="headerlink" href="#gallery" title="Permalink to this headline">¶</a></h1>
+<p><img alt="simple" src="gallery/simplecubic3d.png" />
+<img alt="dual" src="gallery/duallaves.png" />
+<img alt="voronoi" src="gallery/voronoi3d.png" /></p>
+</section>
+<section id="acknowledgement">
+<h1>Acknowledgement<a class="headerlink" href="#acknowledgement" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">kirchhoff</span></code> written by Felix Kramer</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Introduction</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#gallery">Gallery</a></li>
+<li><a class="reference internal" href="#acknowledgement">Acknowledgement</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">Welcome to kirchhoff-circuits’s documentation!</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="kirchhoff.html"
+                          title="next chapter">kirchhoff modules</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/intro.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kirchhoff.html" title="kirchhoff modules"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to kirchhoff-circuits’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Introduction</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Felix Kramer.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>

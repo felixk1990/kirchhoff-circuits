@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kirchhoff.circuit_dual &#8212; kirchhoff-circuits  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+    
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.circuit_dual</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kirchhoff.circuit_dual</h1><div class="highlight"><pre>
+<span></span><span class="c1"># @Author: Felix Kramer &lt;kramer&gt;</span>
+<span class="c1"># @Date:   07-11-2021</span>
+<span class="c1"># @Email:  felixuwekramer@proton.me</span>
+<span class="c1"># @Last modified by:   kramer</span>
+<span class="c1"># @Last modified time: 08-07-2022</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="c1"># custom embeddings/architectures for mono networkx</span>
+<span class="kn">from</span> <span class="nn">kirchhoff.circuit_init</span> <span class="kn">import</span> <span class="n">Circuit</span>
+<span class="kn">from</span> <span class="nn">kirchhoff.circuit_flow</span> <span class="kn">import</span> <span class="n">FlowCircuit</span>
+<span class="kn">from</span> <span class="nn">kirchhoff.circuit_flux</span> <span class="kn">import</span> <span class="n">FluxCircuit</span>
+
+<span class="c1"># custom primer</span>
+<span class="kn">import</span> <span class="nn">kirchhoff.init_dual</span> <span class="k">as</span> <span class="nn">init_dual</span>
+
+<span class="c1"># custom output functions</span>
+<span class="kn">import</span> <span class="nn">kirchhoff.draw_networkx</span> <span class="k">as</span> <span class="nn">dx</span>
+
+
+<span class="k">def</span> <span class="nf">construct_from_graphSet</span><span class="p">(</span><span class="n">graphSet</span><span class="p">,</span> <span class="n">circuit_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">):</span>
+
+    <span class="n">circuitConstructor</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="n">Circuit</span><span class="p">,</span>
+        <span class="s1">&#39;circuit&#39;</span><span class="p">:</span> <span class="n">Circuit</span><span class="p">,</span>
+        <span class="s1">&#39;flow&#39;</span><span class="p">:</span> <span class="n">FlowCircuit</span><span class="p">,</span>
+        <span class="s1">&#39;flux&#39;</span><span class="p">:</span> <span class="n">FluxCircuit</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">circuitSet</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">circuit_type</span> <span class="ow">in</span> <span class="n">circuitConstructor</span><span class="p">:</span>
+
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">graphSet</span><span class="o">.</span><span class="n">layer</span><span class="p">:</span>
+            <span class="n">K</span> <span class="o">=</span> <span class="n">circuitConstructor</span><span class="p">[</span><span class="n">circuit_type</span><span class="p">](</span><span class="n">g</span><span class="p">)</span>
+
+            <span class="n">circuitSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: Invalid graph mode, choose default&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">graphSet</span><span class="o">.</span><span class="n">layer</span><span class="p">:</span>
+            <span class="n">K</span> <span class="o">=</span> <span class="n">circuitConstructor</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">](</span><span class="n">g</span><span class="p">)</span>
+            <span class="n">circuitSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">circuitSet</span>
+
+
+<div class="viewcode-block" id="initialize_dual_from_catenation"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_dual.initialize_dual_from_catenation">[docs]</a><span class="k">def</span> <span class="nf">initialize_dual_from_catenation</span><span class="p">(</span>
+        <span class="n">dual_type</span><span class="o">=</span><span class="s1">&#39;catenation&#39;</span><span class="p">,</span>
+        <span class="n">num_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">circuit_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+        <span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a dual spatially embedded circuit, with internal graphs based on</span>
+<span class="sd">    simple catenatednetwork skeletons.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dual_type (string):\n</span>
+<span class="sd">            The type of dual skeleton (simple, diamond, laves, catenation).</span>
+<span class="sd">        num_periods (int):\n</span>
+<span class="sd">            Repetition number of the lattice&#39;s unit cell.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dual_circuit: A dual circuit system.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">graphSet</span> <span class="o">=</span> <span class="n">init_dual</span><span class="o">.</span><span class="n">init_dualCatenation</span><span class="p">(</span><span class="n">dual_type</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">)</span>
+    <span class="n">circuitSet</span> <span class="o">=</span> <span class="n">construct_from_graphSet</span><span class="p">(</span><span class="n">graphSet</span><span class="p">,</span> <span class="n">circuit_type</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">graphSet</span><span class="o">.</span><span class="n">layer</span><span class="p">):</span>
+        <span class="n">circuitSet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">circuitSet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_info</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">dual_type</span><span class="p">)</span>
+
+    <span class="n">kirchhoff_dual</span> <span class="o">=</span> <span class="n">DualCircuit</span><span class="p">(</span><span class="n">circuitSet</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kirchhoff_dual</span></div>
+
+
+<div class="viewcode-block" id="initialize_dual_from_minsurf"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_dual.initialize_dual_from_minsurf">[docs]</a><span class="k">def</span> <span class="nf">initialize_dual_from_minsurf</span><span class="p">(</span>
+        <span class="n">dual_type</span><span class="o">=</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span>
+        <span class="n">num_periods</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">circuit_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span>
+        <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a dual spatially embedded flux circuit, with internal graphs</span>
+<span class="sd">    based on the network skeletons of triply-periodic minimal surfaces.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dual_type (string):\n</span>
+<span class="sd">            The type of dual skeleton (simple, diamond, laves, catenation).</span>
+<span class="sd">        num_periods (int):\n</span>
+<span class="sd">            Repetition number of the lattice&#39;s unit cell.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dual_circuit: A flow_circuit object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">graphSet</span> <span class="o">=</span> <span class="n">init_dual</span><span class="o">.</span><span class="n">init_dual_minsurf_graphs</span><span class="p">(</span><span class="n">dual_type</span><span class="p">,</span> <span class="n">num_periods</span><span class="p">)</span>
+    <span class="n">circuitSet</span> <span class="o">=</span> <span class="n">construct_from_graphSet</span><span class="p">(</span><span class="n">graphSet</span><span class="p">,</span> <span class="n">circuit_type</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">graphSet</span><span class="o">.</span><span class="n">layer</span><span class="p">):</span>
+        <span class="n">circuitSet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">circuitSet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_info</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">dual_type</span><span class="p">)</span>
+    <span class="n">kirchhoff_dual</span> <span class="o">=</span> <span class="n">DualCircuit</span><span class="p">(</span><span class="n">circuitSet</span><span class="p">)</span>
+
+    <span class="n">kirchhoff_dual</span><span class="o">.</span><span class="n">e_adj</span> <span class="o">=</span> <span class="n">graphSet</span><span class="o">.</span><span class="n">e_adj</span>
+    <span class="n">kirchhoff_dual</span><span class="o">.</span><span class="n">e_adj_idx</span> <span class="o">=</span> <span class="n">graphSet</span><span class="o">.</span><span class="n">e_adj_idx</span>
+    <span class="n">kirchhoff_dual</span><span class="o">.</span><span class="n">distance_edges</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">kirchhoff_dual</span></div>
+
+
+<div class="viewcode-block" id="DualCircuit"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_dual.DualCircuit">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">DualCircuit</span><span class="p">():</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A base class for flow circuits.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        layer (list):\n</span>
+<span class="sd">            List of the graphs contained in the multilayer circuit.</span>
+<span class="sd">        e_adj (list):\n</span>
+<span class="sd">            A list off edge affiliation between the different layers, edge</span>
+<span class="sd">            view.</span>
+<span class="sd">        e_adj_idx (list):\n</span>
+<span class="sd">            A list off edge affiliation between the different layers, label</span>
+<span class="sd">            view.</span>
+<span class="sd">        n_adj (list): An internal nodal varaible.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">layer</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">e_adj</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">e_adj_idx</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">n_adj</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DualCircuit.distance_edges"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_dual.DualCircuit.distance_edges">[docs]</a>    <span class="k">def</span> <span class="nf">distance_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the distance of affiliated edges in the multilayer circuit.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dist_adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">e_adj_idx</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">e_adj_idx</span><span class="p">):</span>
+
+            <span class="n">g1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">G</span>
+            <span class="n">pos1</span> <span class="o">=</span> <span class="p">[</span><span class="n">g1</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pos1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">g2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">G</span>
+            <span class="n">pos2</span> <span class="o">=</span> <span class="p">[</span><span class="n">g2</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pos2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dist_adj</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p1</span><span class="o">-</span><span class="n">p2</span><span class="p">)</span></div>
+
+    <span class="c1"># def check_no_overlap(self, scale):</span>
+    <span class="c1">#</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Test whether the multilayer systems have geometrically</span>
+    <span class="c1"># overlapping edges.</span>
+    <span class="c1">#</span>
+    <span class="c1">#     Returns:</span>
+    <span class="c1">#         bool: True if systems geometrically overlap, otherwise False</span>
+    <span class="c1">#</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1">#     check = True</span>
+    <span class="c1">#     K1 = self.layer[0]</span>
+    <span class="c1">#     K2 = self.layer[1]</span>
+    <span class="c1">#</span>
+    <span class="c1">#     for e in self.e_adj:</span>
+    <span class="c1">#         r1 = K1.C[e[0], e[0]]</span>
+    <span class="c1">#         r2 = K2.C[e[1], e[1]]</span>
+    <span class="c1">#</span>
+    <span class="c1">#         if r1+r2 &gt; scale*0.5:</span>
+    <span class="c1">#             check = False</span>
+    <span class="c1">#             break</span>
+    <span class="c1">#</span>
+    <span class="c1">#     return check</span>
+
+    <span class="c1"># def clipp_graph(self):</span>
+    <span class="c1">#</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Prune the internal graph variables, using an edge weight threshold</span>
+    <span class="c1"># criterium.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#</span>
+    <span class="c1">#     for i in range(2):</span>
+    <span class="c1">#         self.layer[i].clipp_graph()</span>
+
+    <span class="c1"># output</span>
+<div class="viewcode-block" id="DualCircuit.plot_circuit"><a class="viewcode-back" href="../../kirchhoff.html#kirchhoff.circuit_dual.DualCircuit.plot_circuit">[docs]</a>    <span class="k">def</span> <span class="nf">plot_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use Plotly.GraphObjects to create interactive plots that have</span>
+<span class="sd">        optionally the graph atributes displayed.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            kwargs (dictionary):\n</span>
+<span class="sd">                A dictionary for plotly keywords customizing the plots&#39; layout.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            plotly.graph_objects.Figure: A plotly figure displaying the</span>
+<span class="sd">            circuit.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">dx</span><span class="o">.</span><span class="n">plot_networkx_dual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">kirchhoff-circuits  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">kirchhoff.circuit_dual</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Felix Kramer.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.4.0.
+    </div>
+  </body>
+</html>
