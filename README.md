@@ -52,7 +52,9 @@ fig.show()
 <iframe src="https://felixk1990.github.io/kirchhoff-circuits/random3D.html" title="random3D" width="100%" height="600" style="border:none;"></iframe><br>
 <iframe src="https://felixk1990.github.io/kirchhoff-circuits/Laves.html" title="Laves" width="100%" height="600" style="border:none;"></iframe><br>
 <iframe src="https://felixk1990.github.io/kirchhoff-circuits/dualLaves.html" title="dualLaves" width="100%" height="600" style="border:none;"></iframe><br>
-./notebook contains examples to play with in the form of jupyter notebooks
+
+Further examples and recipes to be found:
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/felixk1990/kirchhoff-circuits/HEAD)
 
 ##  Requirements
