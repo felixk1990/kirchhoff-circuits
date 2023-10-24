@@ -49,8 +49,8 @@ def construct_from_graphSet(graphSet, circuit_type='default'):
 def initialize_dual_from_catenation(
         dual_type='catenation',
         num_periods=1,
-        circuit_type='default'
-        ):
+        circuit_type='default',
+        coords_offset=[0.5,0.5,-0.5]):
 
     """
     Initialize a dual spatially embedded circuit, with internal graphs based on
@@ -67,7 +67,7 @@ def initialize_dual_from_catenation(
 
     """
 
-    graphSet = init_dual.init_dualCatenation(dual_type, num_periods)
+    graphSet = init_dual.init_dualCatenation(dual_type, num_periods, coords_offset)
     circuitSet = construct_from_graphSet(graphSet, circuit_type)
     for i, g in enumerate(graphSet.layer):
         circuitSet[i].info = circuitSet[i].set_info(g, dual_type)

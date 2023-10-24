@@ -45,7 +45,7 @@ def init_dual_minsurf_graphs(dual_type, num_periods):
     return dual_graph
 
 
-def init_dualCatenation(dual_type, num_periods):
+def init_dualCatenation(dual_type, num_periods, coords_offset=[0.5,0.5,-0.5]):
 
     """
     Initialize a dual spatially embedded multilayer graph, with internal graphs
@@ -68,10 +68,10 @@ def init_dualCatenation(dual_type, num_periods):
     }
 
     if dual_type in plexus_mode:
-        dual_graph = plexus_mode[dual_type](num_periods)
+        dual_graph = plexus_mode[dual_type](num_periods, coords_offset)
     else:
         print('Warning: Invalid graph mode, choose default')
-        dual_graph = plexus_mode['default'](num_periods)
+        dual_graph = plexus_mode['default'](num_periods, coords_offset)
 
     return dual_graph
 
@@ -738,7 +738,7 @@ class NetworkxDualCatenation(NetworkxDual):
             Scale for the spacing between the networks.
 
     """
-    def __init__(self, num_periods):
+    def __init__(self, num_periods, coords_offset=[0.5,0.5,-0.5]):
 
         """
         A constructor for multilayer circuit catenation objects, setting
@@ -748,9 +748,9 @@ class NetworkxDualCatenation(NetworkxDual):
         super(NetworkxDualCatenation, self).__init__()
         self.lattice_constant = 1
         self.translation_length = 1
-        self.dual_ladder(num_periods)
+        self.dual_ladder(num_periods, coords_offset)
 
-    def dual_ladder(self, num_periods):
+    def dual_ladder(self, num_periods, coords_offset=[0.5,0.5,-0.5]):
 
         """
         Set internal networkx structure, dual ladder.
@@ -780,7 +780,7 @@ class NetworkxDualCatenation(NetworkxDual):
         for n in G1.nodes():
             p = np.array(G1.nodes[n]['pos'])
             p1 = np.dot(rot_mat, p)
-            p2 = np.add([0.5, 0.5, -0.5], p1)
+            p2 = np.add(coords_offset, p1)
 
             G1.nodes[n]['pos'] = self.lattice_constant*p2
 
@@ -801,7 +801,7 @@ class NetworkxDualCrossMesh(NetworkxDual):
             Scale for the spacing between the networks.
 
     """
-    def __init__(self, num_periods):
+    def __init__(self, num_periods, coords_offset=[0.5,0.5,-0.5]):
 
         """
         A constructor for multilayer circuit catenation objects, setting
@@ -811,9 +811,9 @@ class NetworkxDualCrossMesh(NetworkxDual):
         super(NetworkxDualCrossMesh, self).__init__()
         self.lattice_constant = 1
         self.translation_length = 1
-        self.dualCrossMesh(num_periods)
+        self.dualCrossMesh(num_periods, coords_offset)
 
-    def dualCrossMesh(self, n_periods):
+    def dualCrossMesh(self, n_periods, coords_offset=[0.5,0.5,-0.5]):
 
         """
         Set internal networkx structure, dual crossed_mesh.
@@ -844,7 +844,7 @@ class NetworkxDualCrossMesh(NetworkxDual):
         for n in G1.nodes():
             p = np.array(G1.nodes[n]['pos'])
             p1 = np.dot(rot_mat, p)
-            p2 = np.add([0.5, 0.5, -0.5], p1)
+            p2 = np.add(coords_offset, p1)
 
             G1.nodes[n]['pos'] = self.lattice_constant*p2
 
